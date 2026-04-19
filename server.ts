@@ -5,6 +5,8 @@ import cors from 'cors';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
 import { fileURLToPath } from 'url';
+import http from 'http';
+import { Server } from 'socket.io';
 import db from './database.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,6 +22,14 @@ declare module 'express-session' {
 
 async function startServer() {
   const app = express();
+  const httpServer = http.createServer(app);
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
+
   const PORT = Number(process.env.PORT) || 3000;
 
   app.use(cors());
@@ -124,6 +134,7 @@ async function startServer() {
       });
 
       const pedidoId = transaction();
+      io.emit('novo_pedido', { id: pedidoId, cliente, total, data: new Date().toISOString() });
       res.status(201).json({ id: pedidoId, message: 'Pedido realizado com sucesso' });
     } catch (error) {
       console.error(error);
@@ -158,45 +169,55 @@ async function startServer() {
   });
 
   app.get('/api/admin/stats', isAdmin, (req, res) => {
-    const faturamentoTotal = (db.prepare('SELECT SUM(total) as total FROM pedidos WHERE status = "pago"').get() as any).total || 0;
-    const totalPedidos = (db.prepare('SELECT COUNT(*) as count FROM pedidos').get() as any).count;
-    const totalClientes = (db.prepare('SELECT COUNT(*) as count FROM usuarios WHERE tipo = "cliente"').get() as any).count;
-    
-    const faturamentoPorDia = db.prepare(`
-      SELECT DATE(data) as d, SUM(total) as t 
-      FROM pedidos 
-      WHERE status = "pago"
-      GROUP BY d 
-      ORDER BY d ASC 
-      LIMIT 7
-    `).all();
+    try {
+      const faturamentoTotalResult = db.prepare('SELECT SUM(total) as total FROM pedidos WHERE status = "pago"').get() as any;
+      const faturamentoTotal = Number(faturamentoTotalResult?.total || 0);
+      
+      const totalPedidosResult = db.prepare('SELECT COUNT(*) as count FROM pedidos').get() as any;
+      const totalPedidos = Number(totalPedidosResult?.count || 0);
+      
+      const totalClientesResult = db.prepare('SELECT COUNT(*) as count FROM usuarios WHERE tipo = "cliente"').get() as any;
+      const totalClientes = Number(totalClientesResult?.count || 0);
+      
+      const faturamentoPorDia = db.prepare(`
+        SELECT strftime('%d/%m', data) as d, SUM(total) as t 
+        FROM pedidos 
+        WHERE status = "pago"
+        GROUP BY d 
+        ORDER BY data ASC 
+        LIMIT 10
+      `).all() || [];
 
-    const faturamentoPorPersonagem = db.prepare(`
-      SELECT p.personagem as p, SUM(ip.quantidade * ip.preco_unitario) as v
-      FROM itens_pedido ip
-      JOIN produtos p ON ip.produto_id = p.id
-      JOIN pedidos ord ON ip.pedido_id = ord.id
-      WHERE ord.status = "pago"
-      GROUP BY p.personagem
-    `).all();
+      const faturamentoPorPersonagem = db.prepare(`
+        SELECT p.personagem as p, SUM(ip.quantidade * ip.preco_unitario) as v
+        FROM itens_pedido ip
+        JOIN produtos p ON ip.produto_id = p.id
+        JOIN pedidos ord ON ip.pedido_id = ord.id
+        WHERE ord.status = "pago"
+        GROUP BY p.personagem
+      `).all() || [];
 
-    const topProdutos = db.prepare(`
-      SELECT p.nome as n, SUM(ip.quantidade) as q
-      FROM itens_pedido ip
-      JOIN produtos p ON ip.produto_id = p.id
-      GROUP BY p.id
-      ORDER BY q DESC
-      LIMIT 5
-    `).all();
+      const topProdutosRaw = db.prepare(`
+        SELECT p.nome as n, SUM(ip.quantidade) as q
+        FROM itens_pedido ip
+        JOIN produtos p ON ip.produto_id = p.id
+        GROUP BY p.id
+        ORDER BY q DESC
+        LIMIT 5
+      `).all() || [];
 
-    res.json({
-      faturamentoTotal,
-      totalPedidos,
-      totalClientes,
-      faturamentoPorDia,
-      faturamentoPorPersonagem,
-      topProdutos
-    });
+      res.json({
+        faturamentoTotal,
+        totalPedidos,
+        totalClientes,
+        faturamentoPorDia,
+        faturamentoPorPersonagem,
+        topProdutos: topProdutosRaw
+      });
+    } catch (error) {
+      console.error('Stats Error:', error);
+      res.status(500).json({ error: 'Erro ao carregar estatísticas' });
+    }
   });
 
   // Admin Products CRUD
@@ -259,7 +280,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }

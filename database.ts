@@ -1,7 +1,8 @@
 import Database from 'better-sqlite3';
 import bcrypt from 'bcrypt';
 
-const db = new Database('ecommerce.db');
+const dbPath = process.env.DATABASE_PATH || 'ecommerce.db';
+const db = new Database(dbPath);
 
 // --- AUTO-MIGRATION LOGIC ---
 const tableInfoUsuarios = db.prepare("PRAGMA table_info(usuarios)").all() as any[];
@@ -76,10 +77,12 @@ db.exec(`
 `);
 
 // Seed data
-const productCount = (db.prepare('SELECT COUNT(*) as count FROM produtos').get() as any).count;
-if (productCount === 0) {
+const testProductResult = db.prepare('SELECT COUNT(*) as count FROM produtos').get() as any;
+const productCount = testProductResult?.count || 0;
+
+if (productCount < 5) {
   const insertProduct = db.prepare(`
-    INSERT INTO produtos (nome, preco, imagem, descricao, categoria, personagem)
+    INSERT OR IGNORE INTO produtos (nome, preco, imagem, descricao, categoria, personagem)
     VALUES (?, ?, ?, ?, ?, ?)
   `);
 
@@ -101,7 +104,11 @@ if (productCount === 0) {
   ];
 
   for (const p of products) {
-    insertProduct.run(...p);
+    // Check by name to avoid duplicates if count was slightly above 0 but below 5
+    const exists = db.prepare('SELECT id FROM produtos WHERE nome = ?').get(p[0]);
+    if (!exists) {
+      insertProduct.run(...p);
+    }
   }
 }
 

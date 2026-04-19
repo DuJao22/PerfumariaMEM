@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { io } from 'socket.io-client';
 import { 
   ShoppingCart, X, Plus, Minus, ArrowRight, Zap, Moon, Trash2, ShoppingBag, Edit3,
   User as UserIcon, LogOut, Package, LayoutDashboard, BarChart3, TrendingUp, Users, 
@@ -46,6 +47,32 @@ export default function App() {
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [toast, setToast] = useState<{ productName: string } | null>(null);
+  const [newOrderNotification, setNewOrderNotification] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (newOrderNotification) {
+      // Som de notificação
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.play().catch(e => console.log('Bloqueio de áudio pelo browser:', e));
+      const timer = setTimeout(() => setNewOrderNotification(null), 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [newOrderNotification]);
+
+  useEffect(() => {
+    if (user?.tipo === 'admin') {
+      const socket = io();
+      socket.on('novo_pedido', (data) => {
+        setNewOrderNotification(data);
+        // Recarregar dados se estiver no painel admin
+        fetch('/api/admin/pedidos').then(res => res.json()).then(data => setAdminOrders(data));
+        fetch('/api/admin/stats').then(res => res.json()).then(data => setStats(data));
+      });
+      return () => {
+        socket.disconnect();
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     if (toast) {
@@ -62,29 +89,36 @@ export default function App() {
     localStorage.setItem('perfume-cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Initial Auth Check
+  // Initial Data Fetch
   useEffect(() => {
+    fetch(`/api/produtos?personagem=${universe}`)
+      .then(res => res.json())
+      .then(data => setProducts(data));
+      
     fetch('/api/me')
       .then(res => res.ok ? res.json() : null)
       .then(data => setUser(data));
-  }, []);
+  }, [universe]);
 
   useEffect(() => {
-    if (currentView === 'shop') {
-      fetch(`/api/produtos?personagem=${universe}`)
-        .then(res => res.json())
-        .then(data => setProducts(data));
-    } else if (currentView === 'orders' && user) {
+    if (currentView === 'orders' && user) {
       fetch('/api/meus-pedidos')
         .then(res => res.json())
-        .then(data => setMyOrders(data));
+        .then(data => {
+          if (Array.isArray(data)) {
+            setMyOrders(data);
+          } else {
+            setMyOrders([]);
+          }
+        })
+        .catch(() => setMyOrders([]));
     } else if (currentView === 'admin' && user?.tipo === 'admin') {
       fetch('/api/admin/pedidos').then(res => res.json()).then(data => setAdminOrders(data));
       fetch('/api/admin/stats').then(res => res.json()).then(data => setStats(data));
       fetch('/api/admin/produtos').then(res => res.json()).then(data => setAdminProducts(data));
       fetch('/api/admin/usuarios').then(res => res.json()).then(data => setAdminUsers(data));
     }
-  }, [universe, currentView, user]);
+  }, [currentView, user, adminSubTab]);
 
   const refreshProducts = () => {
     fetch('/api/admin/produtos').then(res => res.json()).then(data => setAdminProducts(data));
@@ -248,6 +282,41 @@ export default function App() {
       "min-h-screen transition-colors duration-1000",
       universe === 'padilha' ? "universe-padilha text-white" : "universe-mulamba text-white"
     )}>
+      {/* NOTIFICAÇÃO DE NOVO PEDIDO (ADMIN) */}
+      <AnimatePresence>
+        {newOrderNotification && (
+          <motion.div 
+            initial={{ opacity: 0, y: -50 }} 
+            animate={{ opacity: 1, y: 20 }} 
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-0 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-md bg-white text-black p-6 rounded-[32px] shadow-2xl flex items-center gap-4 border border-zinc-200"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white shrink-0">
+              <ShoppingBag className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40">Pedido Chegando!</h4>
+              <p className="text-sm font-bold truncate">#{newOrderNotification.id} - {newOrderNotification.cliente}</p>
+              <p className="text-xl font-black italic">R$ {newOrderNotification.total.toFixed(2)}</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={() => {
+                  setCurrentView('admin');
+                  setAdminSubTab('pedidos');
+                  setNewOrderNotification(null);
+                }} 
+                className="px-4 py-2 bg-black text-white text-[10px] font-bold uppercase rounded-xl hover:opacity-80"
+              >
+                Ver
+              </button>
+              <button onClick={() => setNewOrderNotification(null)} className="p-2 hover:bg-zinc-100 rounded-full self-center">
+                <X className="w-4 h-4 opacity-40" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Navigation */}
       <nav className={cn(
         "fixed top-0 left-0 right-0 z-[100] px-6 py-4 flex justify-between items-center transition-all duration-700",
@@ -497,11 +566,11 @@ export default function App() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h2 className="text-4xl font-black uppercase italic tracking-tighter">Meus Pedidos</h2>
                 <span className="px-4 py-2 glass-morphism rounded-full text-[10px] font-bold uppercase opacity-60">
-                   {myOrders.length} Histórico Total
+                   {Array.isArray(myOrders) ? myOrders.length : 0} Histórico Total
                 </span>
               </div>
 
-              {myOrders.length === 0 ? (
+              {!Array.isArray(myOrders) || myOrders.length === 0 ? (
                 <div className="py-20 text-center glass-morphism rounded-[40px] opacity-20">
                    <Package className="w-20 h-20 mx-auto mb-4" />
                    <p className="font-bold uppercase tracking-widest text-xs">Nenhum pedido encontrado</p>
@@ -521,7 +590,7 @@ export default function App() {
                         </div>
                       </div>
                       <div className="p-6 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
-                        {order.itens.map(item => (
+                        {Array.isArray(order.itens) && order.itens.map(item => (
                           <div key={item.id} className="group relative">
                             <img src={item.imagem} className="w-full aspect-square object-cover rounded-2xl opacity-60 grayscale-[0.5] group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
                             <span className="absolute bottom-2 right-2 px-2 py-1 bg-black text-[10px] font-bold rounded-lg border border-white/10">{item.quantidade}x</span>
@@ -550,10 +619,6 @@ export default function App() {
                   <div>
                     <h2 className="text-4xl font-black uppercase italic tracking-tighter">Painel Admin</h2>
                     <p className="text-[10px] uppercase opacity-40 font-bold tracking-[0.2em]">Logística e Gestão</p>
-                    <div className="mt-2 flex items-center gap-2 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg max-w-fit">
-                      <Zap className="w-3 h-3 text-amber-500" />
-                      <span className="text-[8px] uppercase font-bold text-amber-500/80">Ambient Vercel: DB SQLite Volátil (Apenas para Testes)</span>
-                    </div>
                   </div>
                 </div>
 
@@ -584,60 +649,200 @@ export default function App() {
                   {/* KPI CARDS */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                      { label: 'Faturamento Pago', val: `R$ ${stats?.faturamentoTotal.toFixed(2)}`, icon: <TrendingUp className="text-green-500" /> },
-                      { label: 'Total Pedidos', val: stats?.totalPedidos, icon: <Package className="text-blue-500" /> },
-                      { label: 'Clientes Base', val: stats?.totalClientes, icon: <Users className="text-purple-500" /> },
-                      { label: 'Mais Vendido', val: stats?.topProdutos[0]?.n || 'N/A', icon: <Zap className="text-amber-500" /> }
+                      { 
+                        label: 'Faturamento Pago', 
+                        val: stats ? `R$ ${(stats.faturamentoTotal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Carregando...', 
+                        icon: <TrendingUp className="text-green-500" />,
+                        trend: '+12.5%' 
+                      },
+                      { 
+                        label: 'Total Pedidos', 
+                        val: stats?.totalPedidos ?? 0, 
+                        icon: <Package className="text-blue-500" />,
+                        trend: 'Histórico'
+                      },
+                      { 
+                        label: 'Clientes Base', 
+                        val: stats?.totalClientes ?? 0, 
+                        icon: <Users className="text-purple-500" />,
+                        trend: 'Cadastrados'
+                      },
+                      { 
+                        label: 'Mais Vendido', 
+                        val: stats?.topProdutos?.[0]?.n || 'N/A', 
+                        icon: <Zap className="text-amber-500" />,
+                        trend: stats?.topProdutos?.[0]?.q ? `${stats.topProdutos[0].q} un.` : '-'
+                      }
                     ].map((kpi, idx) => (
-                      <div key={idx} className="glass-morphism h-32 p-6 rounded-[32px] flex flex-col justify-between border-white/5">
-                        <div className="flex justify-between items-start">
-                          <span className="text-[10px] uppercase font-bold opacity-40">{kpi.label}</span>
-                          {kpi.icon}
+                      <div key={idx} className="glass-morphism min-h-[140px] p-6 rounded-[32px] flex flex-col justify-between border-white/5 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-3xl rounded-full -mr-12 -mt-12 group-hover:bg-white/10 transition-colors" />
+                        <div className="flex justify-between items-start relative z-10">
+                          <div className="space-y-1">
+                            <span className="text-[10px] uppercase font-black opacity-30 tracking-widest">{kpi.label}</span>
+                            <div className="flex items-center gap-2">
+                               <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-white/5 opacity-40">{kpi.trend}</span>
+                            </div>
+                          </div>
+                          <div className="p-2 bg-white/5 rounded-xl">
+                            {kpi.icon}
+                          </div>
                         </div>
-                        <span className="text-2xl font-black truncate">{kpi.val}</span>
+                        <span className="text-2xl font-black truncate relative z-10">{kpi.val}</span>
                       </div>
                     ))}
                   </div>
 
                   {/* CHARTS SECTION */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="glass-morphism p-8 rounded-[40px] space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 glass-morphism p-8 rounded-[40px] space-y-8 border-white/5">
                       <div className="flex justify-between items-center">
-                        <h5 className="text-xs uppercase font-bold tracking-widest opacity-60">Faturamento Diário</h5>
-                        <BarChart3 className="w-4 h-4 opacity-40" />
+                        <div>
+                          <h5 className="text-xs uppercase font-black tracking-[0.2em] opacity-40">Faturamento Diário</h5>
+                          <p className="text-[10px] opacity-20 font-bold uppercase mt-1">Últimos 10 registros de vendas</p>
+                        </div>
+                        <BarChart3 className="w-5 h-5 opacity-20" />
                       </div>
-                      <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={stats?.faturamentoPorDia}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                            <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'gray' }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'gray' }} />
-                            <Tooltip contentStyle={{ background: '#000', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
-                            <Line type="monotone" dataKey="t" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, fill: '#ef4444' }} />
-                          </LineChart>
-                        </ResponsiveContainer>
+                      <div className="h-[300px] w-full">
+                        {stats && stats.faturamentoPorDia?.length > 0 ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={stats.faturamentoPorDia}>
+                              <defs>
+                                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
+                                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+                              <XAxis 
+                                dataKey="d" 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }} 
+                                dy={10}
+                              />
+                              <YAxis 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }} 
+                              />
+                              <Tooltip 
+                                contentStyle={{ 
+                                  background: '#09090b', 
+                                  border: '1px solid rgba(255,255,255,0.1)', 
+                                  borderRadius: '16px',
+                                  fontSize: '10px',
+                                  textTransform: 'uppercase',
+                                  fontWeight: 'bold'
+                                }} 
+                              />
+                              <Line 
+                                type="monotone" 
+                                dataKey="t" 
+                                stroke="#ef4444" 
+                                strokeWidth={4} 
+                                dot={{ r: 4, fill: '#ef4444', strokeWidth: 0 }} 
+                                activeDot={{ r: 6, strokeWidth: 0 }}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="h-full flex flex-col items-center justify-center opacity-20 gap-4">
+                             <BarChart3 className="w-12 h-12" />
+                             <p className="text-[10px] uppercase font-black tracking-widest">Sem dados de faturamento</p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    <div className="glass-morphism p-8 rounded-[40px] space-y-6">
+                    <div className="glass-morphism p-8 rounded-[40px] space-y-8 border-white/5">
                       <div className="flex justify-between items-center">
-                        <h5 className="text-xs uppercase font-bold tracking-widest opacity-60">Vendas por Universo</h5>
-                        <PieChart className="w-4 h-4 opacity-40" />
+                        <h5 className="text-xs uppercase font-black tracking-[0.2em] opacity-40">Universo M&M</h5>
+                        <PieChart className="w-5 h-5 opacity-20" />
                       </div>
-                      <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={stats?.faturamentoPorPersonagem} layout="vertical">
-                            <XAxis type="number" hide />
-                            <YAxis dataKey="p" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'gray', textTransform: 'uppercase' }} />
-                            <Bar dataKey="v" radius={[0, 10, 10, 0]}>
-                              {stats?.faturamentoPorPersonagem.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.p === 'padilha' ? '#ef4444' : '#a855f7'} />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
+                      <div className="h-[300px] w-full">
+                        {stats && stats.faturamentoPorPersonagem?.length > 0 ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={stats.faturamentoPorPersonagem} layout="vertical" margin={{ left: -20 }}>
+                              <XAxis type="number" hide />
+                              <YAxis 
+                                dataKey="p" 
+                                type="category" 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.4)', fontWeight: 'black', textTransform: 'uppercase' }} 
+                              />
+                              <Tooltip 
+                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                contentStyle={{ 
+                                  background: '#09090b', 
+                                  border: '1px solid rgba(255,255,255,0.1)', 
+                                  borderRadius: '16px',
+                                  fontSize: '10px',
+                                  textTransform: 'uppercase',
+                                  fontWeight: 'bold'
+                                }} 
+                              />
+                              <Bar dataKey="v" radius={[0, 10, 10, 0]} barSize={20}>
+                                {stats.faturamentoPorPersonagem.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.p === 'padilha' ? '#ef4444' : '#a855f7'} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="h-full flex flex-col items-center justify-center opacity-20 gap-4">
+                             <PieChart className="w-12 h-12" />
+                             <p className="text-[10px] uppercase font-black tracking-widest">Sem dados de universos</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-3">
+                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500" /> Padilha</div>
+                            <span>{Math.round((stats?.faturamentoPorPersonagem?.find(p => p.p === 'padilha')?.v || 0) / (stats?.faturamentoTotal || 1) * 100)}%</span>
+                         </div>
+                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500" /> Mulamba</div>
+                            <span>{Math.round((stats?.faturamentoPorPersonagem?.find(p => p.p === 'mulamba')?.v || 0) / (stats?.faturamentoTotal || 1) * 100)}%</span>
+                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* TOP PRODUCTS LIST */}
+                  <div className="glass-morphism p-8 rounded-[40px] border-white/5">
+                     <div className="flex justify-between items-center mb-8">
+                        <div>
+                          <h5 className="text-xs uppercase font-black tracking-[0.2em] opacity-40">Top Essências Vendidas</h5>
+                          <p className="text-[10px] opacity-20 font-bold uppercase mt-1">Ranking por volume de saída</p>
+                        </div>
+                        <TrendingUp className="w-5 h-5 opacity-20" />
+                     </div>
+                     <div className="space-y-4">
+                        {stats?.topProdutos?.map((prod, idx) => (
+                           <div key={idx} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                              <div className="flex items-center gap-4">
+                                 <div className="text-xl font-black italic opacity-20 group-hover:opacity-100 transition-opacity">#{idx + 1}</div>
+                                 <div className="font-bold uppercase italic text-sm">{prod.n}</div>
+                              </div>
+                              <div className="flex items-center gap-8">
+                                 <div className="text-right">
+                                    <p className="text-[10px] opacity-30 font-black uppercase">Quantidade</p>
+                                    <p className="font-black text-sm">{prod.q} un.</p>
+                                 </div>
+                                 <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-amber-500" 
+                                      style={{ width: `${(prod.q / (stats.topProdutos[0]?.q || 1)) * 100}%` }}
+                                    />
+                                 </div>
+                              </div>
+                           </div>
+                        ))}
+                        {(!stats?.topProdutos || stats.topProdutos.length === 0) && (
+                          <p className="text-center py-10 text-[10px] font-black uppercase opacity-20 tracking-widest">Nenhuma venda registrada ainda</p>
+                        )}
+                     </div>
                   </div>
                 </div>
               )}
@@ -803,7 +1008,7 @@ export default function App() {
                     )}
                     <div className="space-y-2">
                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30">Seu Telefone ou Usuário</label>
-                       <input required name="login" placeholder="Ex: leticiaadm ou 11999999999" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30" />
+                       <input required name="login" placeholder="Ex: seu_usuario ou 11999999999" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30" />
                     </div>
                     <div className="space-y-2">
                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30">Senha Secreta</label>
