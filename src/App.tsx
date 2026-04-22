@@ -1,17 +1,56 @@
 import { useState, useEffect, useMemo, FormEvent } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { io } from 'socket.io-client';
 import { 
   ShoppingCart, X, Plus, Minus, ArrowRight, Zap, Moon, Trash2, ShoppingBag, Edit3,
   User as UserIcon, LogOut, Package, LayoutDashboard, BarChart3, TrendingUp, Users, 
-  CheckCircle2, Clock, Truck, ShieldCheck, ChevronRight, Menu
+  CheckCircle2, Clock, Truck, ShieldCheck, ChevronRight, Menu, Lock, Star
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   BarChart, Bar, Cell, PieChart, Pie
 } from 'recharts';
 import { cn } from './lib/utils';
-import { Product, CartItem, Universe, User, Order, DashboardStats } from './types';
+import { Product, CartItem, Universe, User, Order, DashboardStats, Banner } from './types';
+import { FullBanner } from './components/FullBanner';
+import { ProductCard } from './components/ProductCard';
+import { ScrollingProductGrid } from './components/ScrollingProductGrid';
+import { Footer } from './components/Footer';
+
+const BANNERS: Banner[] = [
+  {
+    id: 1,
+    title: 'O Fogo Sensual',
+    subtitle: 'Explore a nova coleção de essências raras desenhadas para cada momento de sua vida.',
+    image: 'https://images.unsplash.com/photo-1547887538-e3a2f32cb1cc?auto=format&fit=crop&q=80&w=1920',
+    buttonText: 'Descobrir Linha',
+    universe: 'padilha'
+  },
+  {
+    id: 2,
+    title: 'O Mistério Oculto',
+    subtitle: 'A profundidade secreta das flores noturnas em uma fragrância inesquecível.',
+    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1920',
+    buttonText: 'Explorar Agora',
+    universe: 'mulamba'
+  },
+  {
+    id: 3,
+    title: 'Esplendor Carmesim',
+    subtitle: 'A intensidade da paixão capturada em um frasco de elegância absoluta.',
+    image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=1920',
+    buttonText: 'Ver Coleção',
+    universe: 'padilha'
+  },
+  {
+    id: 4,
+    title: 'Ventos de Violeta',
+    subtitle: 'Um sopro de frescor etéreo vindo de jardins secretos de Mulamba.',
+    image: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?auto=format&fit=crop&q=80&w=1920',
+    buttonText: 'Descobrir Mais',
+    universe: 'mulamba'
+  }
+];
 
 export default function App() {
   const [universe, setUniverse] = useState<Universe>(() => {
@@ -279,9 +318,29 @@ export default function App() {
 
   return (
     <div className={cn(
-      "min-h-screen transition-colors duration-1000",
-      universe === 'padilha' ? "universe-padilha text-white" : "universe-mulamba text-white"
+      "min-h-screen transition-colors duration-1000 relative",
+      universe === 'padilha' ? "universe-padilha text-zinc-900 bg-white" : "universe-mulamba text-zinc-900 bg-zinc-50"
     )}>
+      {/* Global Theme Background Layer */}
+      <AnimatePresence>
+        {universe === 'padilha' && (
+          <motion.div 
+            key="padilha-global-bg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 pointer-events-none z-0"
+          >
+            <img 
+              src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=1920" 
+              className="w-full h-full object-contain mix-blend-multiply flex items-center justify-center p-20"
+              alt="Logo Background"
+              referrerPolicy="no-referrer"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* NOTIFICAÇÃO DE NOVO PEDIDO (ADMIN) */}
       <AnimatePresence>
         {newOrderNotification && (
@@ -306,7 +365,7 @@ export default function App() {
                   setAdminSubTab('pedidos');
                   setNewOrderNotification(null);
                 }} 
-                className="px-4 py-2 bg-black text-white text-[10px] font-bold uppercase rounded-xl hover:opacity-80"
+                className="px-4 py-2 bg-zinc-900 text-white text-[10px] font-bold uppercase rounded-xl hover:opacity-80"
               >
                 Ver
               </button>
@@ -320,8 +379,8 @@ export default function App() {
       {/* Navigation */}
       <nav className={cn(
         "fixed top-0 left-0 right-0 z-[100] px-6 py-4 flex justify-between items-center transition-all duration-700",
-        "bg-black/80 backdrop-blur-[15px] border-b",
-        universe === 'padilha' ? "border-[#e60000]/20" : "border-[#8a2be2]/20"
+        "bg-white/90 backdrop-blur-[15px] border-b shadow-sm",
+        universe === 'padilha' ? "border-[#e60000]/10" : "border-[#8a2be2]/10"
       )}>
         <div className="flex items-center gap-6">
           <button 
@@ -381,7 +440,7 @@ export default function App() {
       </nav>
 
       {/* Main Content Area */}
-      <main className="pt-24 pb-20 px-4 max-w-6xl mx-auto min-h-screen">
+      <main className="pt-24 pb-20 min-h-screen">
         <AnimatePresence mode="wait">
           {/* SHOP VIEW */}
           {currentView === 'shop' && (
@@ -390,117 +449,97 @@ export default function App() {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="space-y-12"
             >
-              {/* Universe Toggle */}
-              <div className="glass-morphism p-3 rounded-[32px] max-w-xs mx-auto text-center space-y-2 border-white/5">
-                <div className="flex bg-white/5 rounded-2xl p-1.5 backdrop-blur-3xl shadow-inner">
-                  <button 
-                    onClick={() => setUniverse('padilha')}
-                    className={cn(
-                      "flex-1 py-3 text-[10px] font-bold uppercase rounded-xl transition-all",
-                      universe === 'padilha' ? "bg-[#e60000] text-white shadow-lg shadow-red-900/40" : "text-white/30 hover:text-white/50"
-                    )}
-                  >
-                    Padilha
-                  </button>
-                  <button 
-                    onClick={() => setUniverse('mulamba')}
-                    className={cn(
-                      "flex-1 py-3 text-[10px] font-bold uppercase rounded-xl transition-all",
-                      universe === 'mulamba' ? "bg-[#8a2be2] text-white shadow-lg shadow-purple-900/40" : "text-white/30 hover:text-white/50"
-                    )}
-                  >
-                    Mulamba
-                  </button>
+              {/* Universe Toggle - Sales Engineering: Emotion-Led Selection */}
+              <div className="max-w-6xl mx-auto px-4">
+                <div className="text-center mb-8 space-y-2">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.5em] opacity-30 text-zinc-900">Qual energia te guia hoje?</h3>
+                  <p className="text-sm font-bold italic opacity-60 text-zinc-900 leading-none">Escolha seu caminho e revele fragrâncias exclusivas</p>
+                </div>
+                <div className="glass-morphism p-3 rounded-[32px] max-w-sm mx-auto text-center border-zinc-200 shadow-xl relative z-10">
+                  <div className="flex bg-zinc-100 rounded-2xl p-1.5 shadow-inner">
+                    <button 
+                      onClick={() => setUniverse('padilha')}
+                      className={cn(
+                        "flex-1 py-4 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all",
+                        universe === 'padilha' ? "bg-[#e60000] text-white shadow-lg shadow-red-200/50 scale-105" : "text-zinc-400 hover:text-zinc-600"
+                      )}
+                    >
+                      Domínio
+                    </button>
+                    <button 
+                      onClick={() => setUniverse('mulamba')}
+                      className={cn(
+                        "flex-1 py-4 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all",
+                        universe === 'mulamba' ? "bg-[#8a2be2] text-white shadow-lg shadow-purple-200/50 scale-105" : "text-zinc-400 hover:text-zinc-600"
+                      )}
+                    >
+                      Mistério
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Banner */}
-              <section className="relative h-[45vh] md:h-[550px] rounded-[40px] overflow-hidden flex items-center justify-center p-12 glass-morphism border-white/10 group">
-                <div className={cn(
-                  "absolute inset-0 z-10 transition-colors duration-1000",
-                  universe === 'padilha' 
-                    ? "bg-gradient-to-t from-black via-black/20 to-transparent" 
-                    : "bg-gradient-to-t from-black via-black/20 to-transparent"
-                )} />
-                <img 
-                  src={universe === 'padilha' 
-                    ? 'https://images.unsplash.com/photo-1547887538-e3a2f32cb1cc?auto=format&fit=crop&q=80&w=1920' 
-                    : 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1920'
-                  } 
-                  alt="Banner" 
-                  className="absolute inset-0 w-full h-full object-cover grayscale-[0.2] transition-transform duration-[15s] group-hover:scale-105"
-                  referrerPolicy="no-referrer"
-                />
-                
-                <div className="relative z-20 text-center max-w-2xl space-y-6">
-                  <div className="flex justify-center gap-1.5">
-                    {[1,2,3].map(i => <div key={i} className={cn("w-1 h-3 rounded-full opacity-50", universe === 'padilha' ? "bg-[#e60000]" : "bg-[#8a2be2]")} />)}
-                  </div>
-                  <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none italic">
-                    {universe === 'padilha' ? 'O Fogo Sensual' : 'O Mistério Oculto'}
-                  </h1>
-                  <p className="text-sm md:text-base text-zinc-400 font-medium max-w-lg mx-auto uppercase tracking-[0.15em] leading-relaxed">
-                    Explore a nova coleção de essências raras desenhadas para cada momento de sua vida.
-                  </p>
-                  <button className={cn(
-                    "px-8 py-4 rounded-full font-bold uppercase text-[10px] tracking-[0.3em] transition-all",
-                    universe === 'padilha' ? "bg-[#e60000] shadow-xl shadow-red-900/20" : "bg-[#8a2be2] shadow-xl shadow-purple-900/20"
-                  )}>
-                    Descobrir Linha
-                  </button>
-                </div>
-              </section>
+              {/* FullBanner section */}
+              <div className="max-w-6xl mx-auto px-4">
+                <FullBanner banners={BANNERS.filter(b => b.universe === universe)} />
+              </div>
 
-              {/* Product Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                {products.map((product) => (
-                  <motion.div 
-                    key={product.id}
-                    layout
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="glass-morphism rounded-[32px] p-3 flex flex-col gap-4 group hover:border-white/20 transition-all"
-                  >
-                    <div 
-                      onClick={() => setSelectedProduct(product)}
-                      className="aspect-[3/4] rounded-[24px] bg-[#0c0c0c] overflow-hidden relative flex items-center justify-center cursor-pointer"
-                    >
-                      <img 
-                        src={product.imagem} 
-                        alt={product.nome} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-xs">
-                           {universe === 'padilha' ? '🔥' : '🔮'}
-                         </div>
-                      </div>
+              {/* Trust Section - Sales Engineering: Social Proof & Reliability */}
+              <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 lg:grid-cols-4 gap-6 py-10 border-y border-zinc-100 mb-12 bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm">
+                {[
+                  { label: 'Entrega Blindada', desc: 'Rastreio em tempo real', icon: <Truck className="w-5 h-5" /> },
+                  { label: 'Origem Garantida', desc: 'Frascos 100% Originais', icon: <ShieldCheck className="w-5 h-5" /> },
+                  { label: 'Portal Seguro', desc: 'Dados e privacidade protegidos', icon: <Lock className="w-5 h-5" /> },
+                  { label: 'Suporte Elite', desc: 'Atendimento VIP via WhatsApp', icon: <Star className="w-5 h-5" /> },
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-4 items-center p-2 group">
+                    <div className="w-12 h-12 rounded-2xl bg-zinc-900 text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-xl">
+                      {item.icon}
                     </div>
-                    
-                    <div className="px-1 space-y-1">
-                      <div className="flex justify-between items-start cursor-pointer" onClick={() => setSelectedProduct(product)}>
-                        <h4 className="text-sm font-bold uppercase tracking-tight line-clamp-1">{product.nome}</h4>
-                      </div>
-                      <div className="flex justify-between items-center pt-2">
-                        <span className={cn(
-                          "text-base font-black",
-                          universe === 'padilha' ? "text-[#e60000]" : "text-[#8a2be2]"
-                        )}>
-                          R$ {product.preco.toFixed(2)}
-                        </span>
-                        <button 
-                          onClick={() => addToCart(product)}
-                          className="p-3 rounded-2xl bg-white text-black hover:bg-zinc-200 active:scale-90 transition-all"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
+                    <div className="text-left">
+                       <span className="text-[10px] font-black uppercase tracking-widest text-zinc-900 block leading-tight mb-1">{item.label}</span>
+                       <p className="text-[9px] opacity-40 font-bold uppercase text-zinc-600 leading-tight">{item.desc}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
+
+              {/* Product Grid Section - Topo, Meio, Baixo com Scroll Lateral */}
+              <section className="py-12">
+                <div className="max-w-6xl mx-auto px-4">
+                  <div className="flex flex-col items-center gap-4 text-center mb-16">
+                  <span className={cn(
+                    "text-[10px] font-black uppercase tracking-[0.4em] opacity-40",
+                    universe === 'padilha' ? "text-[#e60000]" : "text-[#8a2be2]"
+                  )}>
+                    A Experiência Dinâmica
+                  </span>
+                  <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-zinc-900">
+                    Sinta o Movimento
+                  </h2>
+                </div>
+              </div>
+
+              <ScrollingProductGrid 
+                  products={products}
+                  universe={universe}
+                  onAdd={addToCart}
+                  onSelect={setSelectedProduct}
+                />
+
+                {products.length > 12 && (
+                  <div className="max-w-6xl mx-auto px-4">
+                    <div className="flex justify-center pt-20">
+                      <button 
+                        onClick={() => {}} // Placeholder
+                        className="px-8 py-3 rounded-2xl border border-zinc-200 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-900 hover:text-white transition-all active:scale-95"
+                      >
+                        Ver Catálogo Completo
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </section>
             </motion.div>
           )}
 
@@ -508,11 +547,11 @@ export default function App() {
           <AnimatePresence>
             {selectedProduct && (
               <>
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedProduct(null)} className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[400]" />
-                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="fixed inset-4 md:inset-auto md:w-full md:max-w-4xl md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-zinc-950 border border-white/5 z-[401] rounded-[40px] shadow-2xl overflow-hidden flex flex-col md:flex-row">
-                  <button onClick={() => setSelectedProduct(null)} className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full z-10"><X /></button>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedProduct(null)} className="fixed inset-0 bg-white/60 backdrop-blur-md z-[400]" />
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="fixed inset-4 md:inset-auto md:w-full md:max-w-4xl md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white border border-zinc-200 z-[401] rounded-[40px] shadow-2xl overflow-hidden flex flex-col md:flex-row">
+                  <button onClick={() => setSelectedProduct(null)} className="absolute top-6 right-6 p-2 hover:bg-zinc-100 rounded-full z-10 text-zinc-400 hover:text-zinc-900"><X /></button>
                   
-                  <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-black flex items-center justify-center overflow-hidden">
+                  <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-zinc-100 flex items-center justify-center overflow-hidden">
                     <img src={selectedProduct.imagem} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   </div>
                   
@@ -524,17 +563,17 @@ export default function App() {
                        )}>
                          {selectedProduct.categoria} • Linhagem {selectedProduct.personagem === 'padilha' ? 'Padilha' : 'Mulamba'}
                        </span>
-                       <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">{selectedProduct.nome}</h2>
+                       <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none text-zinc-900">{selectedProduct.nome}</h2>
                     </div>
 
-                    <p className="text-zinc-400 text-sm md:text-base leading-relaxed uppercase tracking-wider font-medium">
+                    <p className="text-zinc-600 text-sm md:text-base leading-relaxed uppercase tracking-wider font-medium">
                       {selectedProduct.descricao || "Uma essência rara, destilada para momentos de poder e mistério. Sinta a presença de Perfumaria M & M."}
                     </p>
 
                     <div className="space-y-6">
                       <div className="flex items-baseline gap-2">
-                         <span className="text-sm opacity-40 uppercase font-black">Investimento:</span>
-                         <span className="text-4xl font-black italic">R$ {selectedProduct.preco.toFixed(2)}</span>
+                         <span className="text-sm opacity-40 uppercase font-black text-zinc-900">Investimento:</span>
+                         <span className="text-4xl font-black italic text-zinc-900">R$ {selectedProduct.preco.toFixed(2)}</span>
                       </div>
 
                       <button 
@@ -543,8 +582,8 @@ export default function App() {
                           setSelectedProduct(null);
                         }}
                         className={cn(
-                          "w-full py-5 rounded-2xl font-black uppercase text-xs tracking-[0.4em] transition-all hover:scale-[1.02] active:scale-95 shadow-2xl",
-                          universe === 'padilha' ? "bg-[#e60000]" : "bg-[#8a2be2]"
+                          "w-full py-5 rounded-2xl font-black uppercase text-xs tracking-[0.4em] transition-all hover:scale-[1.02] active:scale-95 shadow-xl text-white",
+                          universe === 'padilha' ? "bg-[#e60000] shadow-red-200/50" : "bg-[#8a2be2] shadow-purple-200/50"
                         )}
                       >
                         Consagrar no Carrinho
@@ -578,8 +617,8 @@ export default function App() {
               ) : (
                 <div className="space-y-4">
                   {myOrders.map(order => (
-                    <div key={order.id} className="glass-morphism rounded-[32px] overflow-hidden border-white/5">
-                      <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 bg-white/5">
+                    <div key={order.id} className="glass-morphism rounded-[32px] overflow-hidden border-zinc-200 shadow-sm">
+                      <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 bg-zinc-50">
                         <div className="space-y-1">
                           <p className="text-[10px] uppercase opacity-40 font-bold">Pedido #{order.id}</p>
                           <h4 className="text-lg font-black uppercase italic">{new Date(order.data).toLocaleDateString()}</h4>
@@ -593,7 +632,7 @@ export default function App() {
                         {Array.isArray(order.itens) && order.itens.map(item => (
                           <div key={item.id} className="group relative">
                             <img src={item.imagem} className="w-full aspect-square object-cover rounded-2xl opacity-60 grayscale-[0.5] group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
-                            <span className="absolute bottom-2 right-2 px-2 py-1 bg-black text-[10px] font-bold rounded-lg border border-white/10">{item.quantidade}x</span>
+                            <span className="absolute bottom-2 right-2 px-2 py-1 bg-zinc-900 text-white text-[10px] font-bold rounded-lg border border-zinc-700">{item.quantidade}x</span>
                           </div>
                         ))}
                       </div>
@@ -674,33 +713,33 @@ export default function App() {
                         trend: stats?.topProdutos?.[0]?.q ? `${stats.topProdutos[0].q} un.` : '-'
                       }
                     ].map((kpi, idx) => (
-                      <div key={idx} className="glass-morphism min-h-[140px] p-6 rounded-[32px] flex flex-col justify-between border-white/5 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-3xl rounded-full -mr-12 -mt-12 group-hover:bg-white/10 transition-colors" />
+                      <div key={idx} className="glass-morphism min-h-[140px] p-6 rounded-[32px] flex flex-col justify-between border-zinc-200 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-zinc-100 blur-3xl rounded-full -mr-12 -mt-12 group-hover:bg-zinc-200 transition-colors" />
                         <div className="flex justify-between items-start relative z-10">
                           <div className="space-y-1">
                             <span className="text-[10px] uppercase font-black opacity-30 tracking-widest">{kpi.label}</span>
                             <div className="flex items-center gap-2">
-                               <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-white/5 opacity-40">{kpi.trend}</span>
+                               <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 opacity-40">{kpi.trend}</span>
                             </div>
                           </div>
-                          <div className="p-2 bg-white/5 rounded-xl">
+                          <div className="p-2 bg-zinc-100 rounded-xl">
                             {kpi.icon}
                           </div>
                         </div>
-                        <span className="text-2xl font-black truncate relative z-10">{kpi.val}</span>
+                        <span className="text-2xl font-black truncate relative z-10 text-zinc-900">{kpi.val}</span>
                       </div>
                     ))}
                   </div>
 
                   {/* CHARTS SECTION */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 glass-morphism p-8 rounded-[40px] space-y-8 border-white/5">
+                    <div className="lg:col-span-2 glass-morphism p-8 rounded-[40px] space-y-8 border-zinc-200">
                       <div className="flex justify-between items-center">
                         <div>
-                          <h5 className="text-xs uppercase font-black tracking-[0.2em] opacity-40">Faturamento Diário</h5>
-                          <p className="text-[10px] opacity-20 font-bold uppercase mt-1">Últimos 10 registros de vendas</p>
+                          <h5 className="text-xs uppercase font-black tracking-[0.2em] opacity-40 text-zinc-900">Faturamento Diário</h5>
+                          <p className="text-[10px] opacity-20 font-bold uppercase mt-1 text-zinc-900">Últimos 10 registros de vendas</p>
                         </div>
-                        <BarChart3 className="w-5 h-5 opacity-20" />
+                        <BarChart3 className="w-5 h-5 opacity-20 text-zinc-900" />
                       </div>
                       <div className="h-[300px] w-full">
                         {stats && stats.faturamentoPorDia?.length > 0 ? (
@@ -712,27 +751,28 @@ export default function App() {
                                   <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
                                 </linearGradient>
                               </defs>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                               <XAxis 
                                 dataKey="d" 
                                 axisLine={false} 
                                 tickLine={false} 
-                                tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }} 
+                                tick={{ fontSize: 10, fill: 'rgba(0,0,0,0.4)', fontWeight: 'bold' }} 
                                 dy={10}
                               />
                               <YAxis 
                                 axisLine={false} 
                                 tickLine={false} 
-                                tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }} 
+                                tick={{ fontSize: 10, fill: 'rgba(0,0,0,0.4)', fontWeight: 'bold' }} 
                               />
                               <Tooltip 
                                 contentStyle={{ 
-                                  background: '#09090b', 
-                                  border: '1px solid rgba(255,255,255,0.1)', 
+                                  background: '#ffffff', 
+                                  border: '1px solid rgba(0,0,0,0.1)', 
                                   borderRadius: '16px',
                                   fontSize: '10px',
                                   textTransform: 'uppercase',
-                                  fontWeight: 'bold'
+                                  fontWeight: 'bold',
+                                  color: '#000000'
                                 }} 
                               />
                               <Line 
@@ -853,7 +893,7 @@ export default function App() {
                     <h3 className="text-2xl font-black uppercase italic tracking-tighter">Estoque de Essências</h3>
                     <button 
                       onClick={() => { setEditingProduct(null); setIsProductModalOpen(true); }}
-                      className="bg-white text-black px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
+                      className="bg-zinc-900 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 shadow-lg"
                     >
                       <Plus className="w-4 h-4" />
                       Novo Produto
@@ -862,8 +902,8 @@ export default function App() {
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {adminProducts.map(product => (
-                      <div key={product.id} className="glass-morphism p-4 rounded-[32px] group border-white/5 space-y-4">
-                        <div className="relative aspect-square overflow-hidden rounded-2xl bg-white/5">
+                      <div key={product.id} className="glass-morphism p-4 rounded-[32px] group border-zinc-200 space-y-4 shadow-sm">
+                        <div className="relative aspect-square overflow-hidden rounded-2xl bg-zinc-100">
                            <img src={product.imagem} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" />
                            <div className={cn(
                              "absolute top-3 right-3 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest",
@@ -880,7 +920,7 @@ export default function App() {
                         <div className="flex gap-2">
                           <button 
                             onClick={() => { setEditingProduct(product); setIsProductModalOpen(true); }}
-                            className="flex-1 bg-white/5 hover:bg-white/10 p-2 rounded-xl transition-all flex justify-center"
+                            className="flex-1 bg-zinc-100 hover:bg-zinc-200 p-2 rounded-xl transition-all flex justify-center text-zinc-600"
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
@@ -981,43 +1021,45 @@ export default function App() {
         </AnimatePresence>
       </main>
 
+      <Footer universe={universe} />
+
       {/* MODALS & OVERLAYS */}
       
       {/* Auth Sidebar */}
       <AnimatePresence>
         {authView && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAuthView(null)} className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200]" />
-            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-zinc-950 border-l border-white/10 z-[201] p-10 flex flex-col justify-center">
-               <button onClick={() => setAuthView(null)} className="absolute top-10 right-10 p-2 hover:bg-white/10 rounded-full"><X /></button>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAuthView(null)} className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200]" />
+            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white border-l border-zinc-200 z-[201] p-10 flex flex-col justify-center shadow-2xl">
+               <button onClick={() => setAuthView(null)} className="absolute top-10 right-10 p-2 hover:bg-zinc-100 rounded-full text-zinc-400 hover:text-zinc-900"><X /></button>
                
                <div className="space-y-12">
                  <div className="space-y-4">
-                    <h2 className="text-6xl font-black uppercase italic tracking-tighter leading-none">
+                    <h2 className="text-6xl font-black uppercase italic tracking-tighter leading-none text-zinc-900">
                       {authView === 'login' ? 'Voltar ao Êxtase' : 'Criar Essência'}
                     </h2>
-                    <p className="opacity-40 uppercase text-xs tracking-widest font-medium">Preencha seus dados para continuar</p>
+                    <p className="opacity-40 uppercase text-xs tracking-widest font-medium text-zinc-500">Preencha seus dados para continuar</p>
                  </div>
 
                  <form onSubmit={authView === 'login' ? handleLogin : handleRegister} className="space-y-6">
                     {authView === 'register' && (
                       <div className="space-y-2">
                          <label className="text-[10px] uppercase tracking-widest font-black opacity-30">Nome Completo</label>
-                         <input required name="nome" placeholder="Seu nome" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30" />
+                         <input required name="nome" placeholder="Seu nome" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400" />
                       </div>
                     )}
                     <div className="space-y-2">
                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30">Seu Telefone ou Usuário</label>
-                       <input required name="login" placeholder="Ex: seu_usuario ou 11999999999" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30" />
+                       <input required name="login" placeholder="Ex: seu_usuario ou 11999999999" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400" />
                     </div>
                     <div className="space-y-2">
                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30">Senha Secreta</label>
-                       <input required type="password" name="senha" placeholder="••••••••" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30" />
+                       <input required type="password" name="senha" placeholder="••••••••" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400" />
                     </div>
                     
                     <button className={cn(
-                      "w-full py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] transition-all active:scale-95 shadow-2xl",
-                      universe === 'padilha' ? "bg-[#e60000]" : "bg-[#8a2be2]"
+                      "w-full py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] transition-all active:scale-95 shadow-xl text-white",
+                      universe === 'padilha' ? "bg-[#e60000] shadow-red-200/50" : "bg-[#8a2be2] shadow-purple-200/50"
                     )}>
                       {authView === 'login' ? 'Entrar Agora' : 'Finalizar Cadastro'}
                     </button>
@@ -1042,29 +1084,29 @@ export default function App() {
         {isCartOpen && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCartOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200]" />
-            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="fixed top-0 right-0 bottom-0 w-full max-w-[380px] bg-zinc-950 border-l border-white/10 z-[201] flex flex-col">
-              <div className="p-8 flex justify-between items-center border-b border-white/5">
+            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="fixed top-0 right-0 bottom-0 w-full max-w-[380px] bg-white border-l border-zinc-200 z-[201] flex flex-col shadow-2xl">
+              <div className="p-8 flex justify-between items-center border-b border-zinc-100">
                 <h2 className="text-3xl font-black uppercase italic tracking-tighter">Carrinho</h2>
-                <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-white/10 rounded-full"><X className="w-6 h-6" /></button>
+                <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-zinc-100 rounded-full text-zinc-400 hover:text-zinc-900"><X className="w-6 h-6" /></button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                 {cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center opacity-20 gap-4">
-                    <ShoppingBag className="w-16 h-16" />
-                    <p className="font-bold uppercase text-[10px] tracking-widest">Nada por aqui ainda...</p>
+                  <div className="h-full flex flex-col items-center justify-center opacity-40 gap-4">
+                    <ShoppingBag className="w-16 h-16 text-zinc-300" />
+                    <p className="font-bold uppercase text-[10px] tracking-widest text-zinc-400">Nada por aqui ainda...</p>
                   </div>
                 ) : (
                   cart.map((item) => (
                     <div key={item.id} className="flex gap-4 glass-morphism p-3 rounded-[24px]">
-                      <img src={item.imagem} className="w-20 h-24 rounded-2xl object-cover shrink-0 grayscale-[0.3]" />
+                      <img src={item.imagem} className="w-20 h-24 rounded-2xl object-cover shrink-0 grayscale-[0.2]" />
                       <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
                         <div>
                           <h5 className="font-bold text-sm uppercase truncate italic">{item.nome}</h5>
                           <p className="text-[10px] opacity-40 uppercase font-black">{item.categoria}</p>
                         </div>
                         <div className="flex justify-between items-center">
-                           <div className="flex items-center gap-3 bg-white/5 rounded-xl px-2 py-1">
+                           <div className="flex items-center gap-3 bg-zinc-100 rounded-xl px-2 py-1">
                               <button onClick={() => updateQuantity(item.id, -1)} className="p-1 hover:text-red-500"><Minus className="w-3 h-3" /></button>
                               <span className="text-xs font-bold font-mono">{item.quantity}</span>
                               <button onClick={() => updateQuantity(item.id, 1)} className="p-1 hover:text-green-500"><Plus className="w-3 h-3" /></button>
@@ -1075,14 +1117,34 @@ export default function App() {
                            )}>R$ {(item.preco * item.quantity).toFixed(2)}</span>
                         </div>
                       </div>
-                      <button onClick={() => removeFromCart(item.id)} className="p-2 text-white/20 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => removeFromCart(item.id)} className="p-2 text-zinc-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   ))
                 )}
               </div>
 
               {cart.length > 0 && (
-                <div className="p-8 border-t border-white/5 bg-black/40 space-y-6">
+                <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100">
+                  <h6 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4 text-center">Ritual Completo? Complete seu kit</h6>
+                  <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                    {products.filter(p => !cart.find(c => c.id === p.id)).slice(0, 3).map(p => (
+                      <button 
+                        key={p.id}
+                        onClick={() => addToCart(p)}
+                        className="flex-shrink-0 w-32 bg-white p-3 rounded-2xl border border-zinc-100 shadow-sm hover:shadow-md transition-shadow group text-left"
+                      >
+                        <img src={p.imagem} className="w-full h-16 object-contain mb-2 group-hover:scale-110 transition-transform" referrerPolicy="no-referrer" />
+                        <p className="text-[8px] font-black uppercase italic leading-tight truncate">{p.nome}</p>
+                        <p className="text-[10px] font-bold text-amber-500 mt-1">R$ {p.preco.toFixed(2)}</p>
+                        <div className="mt-2 w-full py-1.5 bg-zinc-900 text-white text-[7px] font-black uppercase text-center rounded-lg">Adicionar</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {cart.length > 0 && (
+                <div className="p-8 border-t border-zinc-100 bg-zinc-50 space-y-6">
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Total Estimado</span>
                     <span className="text-2xl font-black italic">R$ {cartTotal.toFixed(2)}</span>
@@ -1098,8 +1160,8 @@ export default function App() {
                       }
                     }}
                     className={cn(
-                    "w-full py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] transition-all active:scale-95 shadow-xl",
-                    universe === 'padilha' ? "bg-[#e60000] shadow-red-900/40" : "bg-[#8a2be2] shadow-purple-900/40"
+                    "w-full py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] transition-all active:scale-95 shadow-xl text-white",
+                    universe === 'padilha' ? "bg-[#e60000] shadow-red-200/50" : "bg-[#8a2be2] shadow-purple-200/50"
                   )}>
                     {user ? 'Avançar para Checkout' : 'Login para Finalizar'}
                   </button>
@@ -1113,11 +1175,11 @@ export default function App() {
       {/* Checkout Map - Reduced version for brevity */}
       <AnimatePresence>
         {isCheckoutOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-6">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[300] bg-white/95 backdrop-blur-3xl flex items-center justify-center p-6">
             <div className="max-w-md w-full space-y-12">
-               <div className="flex justify-between items-center">
+               <div className="flex justify-between items-center text-zinc-900">
                  <h2 className="text-5xl font-black uppercase tracking-tighter italic">Checkout</h2>
-                 <button onClick={() => setIsCheckoutOpen(false)} className="p-2 hover:bg-white/10 rounded-full"><X className="w-8 h-8" /></button>
+                 <button onClick={() => setIsCheckoutOpen(false)} className="p-2 hover:bg-zinc-100 rounded-full"><X className="w-8 h-8" /></button>
                </div>
 
                {checkoutStatus === 'success' ? (
@@ -1125,7 +1187,7 @@ export default function App() {
                     <div className={cn("w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl scale-125", universe === 'padilha' ? "bg-[#e60000]" : "bg-[#8a2be2]")}>
                       <ChevronRight className="w-12 h-12 rotate-[-45deg]" />
                     </div>
-                    <h3 className="text-4xl font-black uppercase tracking-tighter italic">Obrigado!</h3>
+                    <h3 className="text-4xl font-black uppercase tracking-tighter italic">Consagrado!</h3>
                     <p className="opacity-40 uppercase text-xs tracking-widest font-bold">Sua essência em breve estará com você.</p>
                  </div>
                ) : (
@@ -1148,7 +1210,7 @@ export default function App() {
                      "w-full py-6 rounded-[32px] font-black uppercase text-xs tracking-[0.4em] transition-all active:scale-95 shadow-2xl",
                      universe === 'padilha' ? "bg-[#e60000]" : "bg-[#8a2be2]"
                    )}>
-                     Confirmar Pedido <TrendingUp className="inline-block ml-2 w-4 h-4" />
+                     Selar Ritual de Compra
                    </button>
                  </form>
                )}
@@ -1166,16 +1228,16 @@ export default function App() {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[500] pointer-events-none"
           >
-            <div className="glass-morphism px-6 py-4 rounded-[24px] border-white/10 shadow-2xl flex items-center gap-4 min-w-[300px]">
+            <div className="glass-morphism px-6 py-4 rounded-[24px] border-zinc-200 shadow-2xl flex items-center gap-4 min-w-[300px]">
               <div className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                universe === 'padilha' ? "bg-[#e60000] shadow-lg shadow-red-900/40" : "bg-[#8a2be2] shadow-lg shadow-purple-900/40"
+                universe === 'padilha' ? "bg-[#e60000] shadow-lg shadow-red-200/50 text-white" : "bg-[#8a2be2] shadow-lg shadow-purple-200/50 text-white"
               )}>
-                <CheckCircle2 className="w-5 h-5 text-white" />
+                <CheckCircle2 className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="text-[10px] uppercase font-bold tracking-widest opacity-50 mb-0.5">Adicionado ao carrinho</p>
-                <p className="text-sm font-black uppercase italic truncate">{toast.productName}</p>
+                <p className="text-[10px] uppercase font-bold tracking-widest opacity-50 mb-0.5 text-zinc-600">Adicionado ao carrinho</p>
+                <p className="text-sm font-black uppercase italic truncate text-zinc-900">{toast.productName}</p>
               </div>
             </div>
           </motion.div>
@@ -1186,16 +1248,16 @@ export default function App() {
       <AnimatePresence>
         {isProductModalOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsProductModalOpen(false)} className="fixed inset-0 bg-black/80 backdrop-blur-md z-[600]" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="fixed inset-4 md:inset-auto md:w-full md:max-w-xl md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-zinc-950 border border-white/10 z-[601] p-10 rounded-[40px] shadow-2xl overflow-y-auto">
-                <button onClick={() => setIsProductModalOpen(false)} className="absolute top-8 right-8 p-2 hover:bg-white/10 rounded-full transition-all shrink-0"><X /></button>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsProductModalOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-md z-[600]" />
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="fixed inset-4 md:inset-auto md:w-full md:max-w-xl md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white border border-zinc-200 z-[601] p-10 rounded-[40px] shadow-2xl overflow-y-auto">
+                <button onClick={() => setIsProductModalOpen(false)} className="absolute top-8 right-8 p-2 hover:bg-zinc-100 rounded-full transition-all shrink-0 text-zinc-400 hover:text-zinc-900"><X /></button>
                 
                 <div className="space-y-8">
                   <div className="space-y-4">
-                    <h2 className="text-4xl font-black uppercase italic tracking-tighter leading-none">
+                    <h2 className="text-4xl font-black uppercase italic tracking-tighter leading-none text-zinc-900">
                       {editingProduct ? 'Ajustar Essência' : 'Nova Alquimia'}
                     </h2>
-                    <p className="opacity-40 uppercase text-[10px] tracking-widest font-bold">Defina as propriedades do produto</p>
+                    <p className="opacity-40 uppercase text-[10px] tracking-widest font-bold text-zinc-500">Defina as propriedades do produto</p>
                   </div>
 
                   <form 
@@ -1221,40 +1283,40 @@ export default function App() {
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30">Nome</label>
-                        <input required name="nome" defaultValue={editingProduct?.nome} placeholder="Ex: Sedução Escarlate" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30" />
+                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30 text-zinc-900">Nome</label>
+                        <input required name="nome" defaultValue={editingProduct?.nome} placeholder="Ex: Sedução Escarlate" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30">Preço (R$)</label>
-                        <input required type="number" step="0.01" name="preco" defaultValue={editingProduct?.preco} placeholder="0.00" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30" />
+                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30 text-zinc-900">Preço (R$)</label>
+                        <input required type="number" step="0.01" name="preco" defaultValue={editingProduct?.preco} placeholder="0.00" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400" />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-widest font-black opacity-30">URL da Imagem</label>
-                      <input required name="imagem" defaultValue={editingProduct?.imagem} placeholder="https://..." className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30" />
+                      <label className="text-[10px] uppercase tracking-widest font-black opacity-30 text-zinc-900">URL da Imagem</label>
+                      <input required name="imagem" defaultValue={editingProduct?.imagem} placeholder="https://..." className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400" />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30">Categoria</label>
-                        <input required name="categoria" defaultValue={editingProduct?.categoria} placeholder="Ex: Eau de Parfum" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30" />
+                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30 text-zinc-900">Categoria</label>
+                        <input required name="categoria" defaultValue={editingProduct?.categoria} placeholder="Ex: Eau de Parfum" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30">Linhagem do Perfil</label>
-                        <select name="personagem" defaultValue={editingProduct?.personagem || 'padilha'} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30 appearance-none">
-                          <option value="padilha" className="bg-zinc-900 border-none">🍷 Padilha (Vibrante/Vermelho)</option>
-                          <option value="mulamba" className="bg-zinc-900 border-none">💜 Mulamba (Místico/Roxo)</option>
+                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30 text-zinc-900">Linhagem do Perfil</label>
+                        <select name="personagem" defaultValue={editingProduct?.personagem || 'padilha'} className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400 appearance-none text-zinc-900">
+                          <option value="padilha" className="bg-white border-none">🍷 Padilha (Vibrante/Vermelho)</option>
+                          <option value="mulamba" className="bg-white border-none">💜 Mulamba (Místico/Roxo)</option>
                         </select>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-widest font-black opacity-30">Descrição</label>
-                      <textarea name="descricao" defaultValue={editingProduct?.descricao} rows={3} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-white/30 resize-none" />
+                      <label className="text-[10px] uppercase tracking-widest font-black opacity-30 text-zinc-900">Descrição</label>
+                      <textarea name="descricao" defaultValue={editingProduct?.descricao} rows={3} className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400 resize-none" />
                     </div>
 
-                    <button type="submit" className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    <button type="submit" className="w-full bg-zinc-900 text-white py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg">
                       {editingProduct ? 'Salvar Alterações' : 'Criar Produto'}
                     </button>
                   </form>

@@ -48,3 +48,12 @@ export interface DashboardStats {
   faturamentoPorPersonagem: { p: string; v: number }[];
   topProdutos: { n: string; q: number }[];
 }
+
+export interface Banner {
+  id: number;
+  title: string;
+  subtitle: string;
+  image: string;
+  buttonText: string;
+  universe: Universe;
+}

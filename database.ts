@@ -80,7 +80,7 @@ db.exec(`
 const testProductResult = db.prepare('SELECT COUNT(*) as count FROM produtos').get() as any;
 const productCount = testProductResult?.count || 0;
 
-if (productCount < 5) {
+if (productCount < 20) {
   const insertProduct = db.prepare(`
     INSERT OR IGNORE INTO produtos (nome, preco, imagem, descricao, categoria, personagem)
     VALUES (?, ?, ?, ?, ?, ?)
@@ -94,6 +94,9 @@ if (productCount < 5) {
     ['Dama da Noite', 198.00, 'https://picsum.photos/seed/padilha5/400/600', 'Floral intenso com notas de jasmim e mistério.', 'Eau de Parfum', 'padilha'],
     ['Poder Escarlate', 215.00, 'https://picsum.photos/seed/padilha6/400/600', 'Uma explosão de especiarias e sedução.', 'Intense', 'padilha'],
     ['Pérola Negra', 245.00, 'https://picsum.photos/seed/padilha7/400/600', 'Sofisticado e envolvente como uma noite estrelada.', 'Exclusivo', 'padilha'],
+    ['Carmesim Real', 280.00, 'https://picsum.photos/seed/padilha8/400/600', 'A nobreza em gotas de sangue e ouro.', 'Limited Edition', 'padilha'],
+    ['Feitiço Rubro', 185.00, 'https://picsum.photos/seed/padilha9/400/600', 'Um aroma que hipnotiza e domina os sentidos.', 'Mystique', 'padilha'],
+    ['Toque de Fogo', 199.90, 'https://picsum.photos/seed/padilha10/400/600', 'O calor do asfalto e a paixão das encruzilhadas.', 'Urban', 'padilha'],
     ['Véu Místico', 195.00, 'https://picsum.photos/seed/mulamba1/400/600', 'Fragrância etérea com notas de lavanda mística e incenso.', 'Eau de Parfum', 'mulamba'],
     ['Segredo Roxo', 180.00, 'https://picsum.photos/seed/mulamba2/400/600', 'Toques de ametista e orquídea selvagem.', 'Floral', 'mulamba'],
     ['Essência da Estrada', 165.00, 'https://picsum.photos/seed/mulamba3/400/600', 'Notas terrosas combinadas com patchouli.', 'Ancestral', 'mulamba'],
@@ -101,6 +104,9 @@ if (productCount < 5) {
     ['Raízes Sagradas', 185.00, 'https://picsum.photos/seed/mulamba5/400/600', 'A força da natureza em um frasco purpúreo.', 'Natural', 'mulamba'],
     ['Encanto Cigano', 192.00, 'https://picsum.photos/seed/mulamba6/400/600', 'Liberdade e frescor com toques frutados.', 'Eau de Toilette', 'mulamba'],
     ['Luar De Prata', 210.00, 'https://picsum.photos/seed/mulamba7/400/600', 'Brilho e serenidade para os rituais modernos.', 'Luminous', 'mulamba'],
+    ['Espírito Livre', 178.00, 'https://picsum.photos/seed/mulamba8/400/600', 'Caminhadas sob o sol e campos de ametista.', 'Fresh', 'mulamba'],
+    ['Oráculo Purpúreo', 240.00, 'https://picsum.photos/seed/mulamba9/400/600', 'A sabedoria ancestral destilada em aromas profundos.', 'Premium', 'mulamba'],
+    ['Sussurro das Matas', 160.00, 'https://picsum.photos/seed/mulamba10/400/600', 'Eco de vozes antigas em um jardim de orquídeas.', 'Organic', 'mulamba'],
   ];
 
   for (const p of products) {
