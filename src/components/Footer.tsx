@@ -15,16 +15,26 @@ import {
 import { cn } from '../lib/utils';
 
 interface FooterProps {
-  universe: 'padilha' | 'mulamba';
+  universe: 'all' | 'padilha' | 'mulamba' | 'malandragem' | 'damadanoite';
 }
+
+const FOOTER_CONFIG = {
+  all: { text: 'text-zinc-900', border: 'border-zinc-100', bg: 'bg-white' },
+  padilha: { text: 'text-[#e60000]', border: 'border-red-100', bg: 'bg-white' },
+  mulamba: { text: 'text-[#8a2be2]', border: 'border-purple-100', bg: 'bg-zinc-50' },
+  malandragem: { text: 'text-[#008000]', border: 'border-green-100', bg: 'bg-white' },
+  damadanoite: { text: 'text-[#1a237e]', border: 'border-indigo-100', bg: 'bg-zinc-50' }
+};
 
 export const Footer: FC<FooterProps> = ({ universe }) => {
   const currentYear = new Date().getFullYear();
+  const config = FOOTER_CONFIG[universe];
 
   return (
     <footer className={cn(
       "relative pt-24 pb-12 overflow-hidden border-t",
-      universe === 'padilha' ? "bg-white border-red-100" : "bg-zinc-50 border-purple-100"
+      config.bg,
+      config.border
     )}>
       {/* Decorative background element */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-zinc-100/50 rounded-full blur-[120px] -z-10" />
@@ -35,7 +45,7 @@ export const Footer: FC<FooterProps> = ({ universe }) => {
           <div className="space-y-8">
             <h3 className={cn(
               "text-2xl font-black uppercase tracking-tighter italic",
-              universe === 'padilha' ? "text-[#e60000]" : "text-[#8a2be2]"
+              config.text
             )}>
               Perfumaria M&M
             </h3>
@@ -61,7 +71,7 @@ export const Footer: FC<FooterProps> = ({ universe }) => {
               Explore o Ritual
             </h4>
             <ul className="space-y-4">
-              {['Catálogo Completo', 'Linhagem Padilha', 'Linhagem Mulamba', 'Pedidos Realizados', 'Área VIP'].map((link) => (
+              {['Catálogo Completo', 'Linhagem Padilha', 'Linhagem Mulambo', 'Pedidos Realizados', 'Área VIP'].map((link) => (
                 <li key={link}>
                   <a href="#" className="text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-colors flex items-center gap-2 group">
                     <span className="w-0 group-hover:w-4 h-px bg-zinc-900 transition-all" />

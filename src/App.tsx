@@ -45,17 +45,71 @@ const BANNERS: Banner[] = [
   {
     id: 4,
     title: 'Ventos de Violeta',
-    subtitle: 'Um sopro de frescor etéreo vindo de jardins secretos de Mulamba.',
+    subtitle: 'Um sopro de frescor etéreo vindo de jardins secretos de Mulambo.',
     image: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?auto=format&fit=crop&q=80&w=1920',
     buttonText: 'Descobrir Mais',
     universe: 'mulamba'
+  },
+  {
+    id: 5,
+    title: 'A Ginga do Asfalto',
+    subtitle: 'A malandragem carioca destilada em um aroma refrescante e inesquecível.',
+    image: 'https://images.unsplash.com/photo-1512403713021-998845722384?auto=format&fit=crop&q=80&w=1920',
+    buttonText: 'Ver Linha',
+    universe: 'malandragem'
+  },
+  {
+    id: 6,
+    title: 'O Brilho do Luar',
+    subtitle: 'Flores que despertam apenas na calada da noite para revelar sua beleza.',
+    image: 'https://images.unsplash.com/photo-1505330622279-bf7d7fc918f4?auto=format&fit=crop&q=80&w=1920',
+    buttonText: 'Explorar Noite',
+    universe: 'damadanoite'
   }
 ];
+
+const UNIVERSE_CONFIG: Record<Universe, { color: string; shadow: string; bg: string; text: string; name: string }> = {
+  all: {
+    color: '#000000',
+    shadow: 'shadow-zinc-200/50',
+    bg: 'bg-zinc-900',
+    text: 'text-zinc-900',
+    name: 'Ver Tudo'
+  },
+  padilha: {
+    color: '#e60000',
+    shadow: 'shadow-red-200/50',
+    bg: 'bg-[#e60000]',
+    text: 'text-[#e60000]',
+    name: 'Maria Padilha'
+  },
+  mulamba: {
+    color: '#8a2be2',
+    shadow: 'shadow-purple-200/50',
+    bg: 'bg-[#8a2be2]',
+    text: 'text-[#8a2be2]',
+    name: 'Maria Mulambo'
+  },
+  malandragem: {
+    color: '#008000',
+    shadow: 'shadow-green-200/50',
+    bg: 'bg-[#008000]',
+    text: 'text-[#008000]',
+    name: 'Malandragem'
+  },
+  damadanoite: {
+    color: '#1a237e',
+    shadow: 'shadow-indigo-200/50',
+    bg: 'bg-[#1a237e]',
+    text: 'text-[#1a237e]',
+    name: 'Dama da Noite'
+  }
+};
 
 export default function App() {
   const [universe, setUniverse] = useState<Universe>(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('perfume-universe') : null;
-    return (saved as Universe) || 'padilha';
+    return (saved as Universe) || 'all';
   });
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -319,7 +373,8 @@ export default function App() {
   return (
     <div className={cn(
       "min-h-screen transition-colors duration-1000 relative",
-      universe === 'padilha' ? "universe-padilha text-zinc-900 bg-white" : "universe-mulamba text-zinc-900 bg-zinc-50"
+      `universe-${universe} text-zinc-900`,
+      (universe === 'padilha' || universe === 'malandragem' || universe === 'all') ? "bg-white" : "bg-zinc-50"
     )}>
       {/* Global Theme Background Layer */}
       <AnimatePresence>
@@ -455,26 +510,26 @@ export default function App() {
                   <h3 className="text-[10px] font-black uppercase tracking-[0.5em] opacity-30 text-zinc-900">Qual energia te guia hoje?</h3>
                   <p className="text-sm font-bold italic opacity-60 text-zinc-900 leading-none">Escolha seu caminho e revele fragrâncias exclusivas</p>
                 </div>
-                <div className="glass-morphism p-3 rounded-[32px] max-w-sm mx-auto text-center border-zinc-200 shadow-xl relative z-10">
-                  <div className="flex bg-zinc-100 rounded-2xl p-1.5 shadow-inner">
-                    <button 
-                      onClick={() => setUniverse('padilha')}
-                      className={cn(
-                        "flex-1 py-4 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all",
-                        universe === 'padilha' ? "bg-[#e60000] text-white shadow-lg shadow-red-200/50 scale-105" : "text-zinc-400 hover:text-zinc-600"
-                      )}
-                    >
-                      Domínio
-                    </button>
-                    <button 
-                      onClick={() => setUniverse('mulamba')}
-                      className={cn(
-                        "flex-1 py-4 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all",
-                        universe === 'mulamba' ? "bg-[#8a2be2] text-white shadow-lg shadow-purple-200/50 scale-105" : "text-zinc-400 hover:text-zinc-600"
-                      )}
-                    >
-                      Mistério
-                    </button>
+                <div className="glass-morphism p-3 rounded-[32px] max-w-3xl mx-auto text-center border-zinc-200 shadow-xl relative z-10">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-zinc-100 rounded-2xl p-1.5 shadow-inner">
+                    {(Object.keys(UNIVERSE_CONFIG) as Universe[]).map((u) => {
+                      const config = UNIVERSE_CONFIG[u];
+                      const isActive = universe === u;
+                      return (
+                        <button 
+                          key={u}
+                          onClick={() => setUniverse(u)}
+                          className={cn(
+                            "py-4 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all h-full flex items-center justify-center text-center px-1",
+                            isActive 
+                              ? `${config.bg} text-white shadow-lg ${config.shadow} scale-105` 
+                              : "text-zinc-400 hover:text-zinc-600 hover:bg-zinc-200/50"
+                          )}
+                        >
+                          {config.name}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -504,28 +559,45 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Product Grid Section - Topo, Meio, Baixo com Scroll Lateral */}
+              {/* Product Grid Section */}
               <section className="py-12">
                 <div className="max-w-6xl mx-auto px-4">
                   <div className="flex flex-col items-center gap-4 text-center mb-16">
                   <span className={cn(
                     "text-[10px] font-black uppercase tracking-[0.4em] opacity-40",
-                    universe === 'padilha' ? "text-[#e60000]" : "text-[#8a2be2]"
+                    UNIVERSE_CONFIG[universe].text
                   )}>
-                    A Experiência Dinâmica
+                    {universe === 'all' ? 'A Experiência Dinâmica' : `Coleção ${UNIVERSE_CONFIG[universe].name}`}
                   </span>
                   <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-zinc-900">
-                    Sinta o Movimento
+                    {universe === 'all' ? 'Sinta o Movimento' : UNIVERSE_CONFIG[universe].name}
                   </h2>
                 </div>
               </div>
 
-              <ScrollingProductGrid 
+              {universe === 'all' ? (
+                <ScrollingProductGrid 
                   products={products}
-                  universe={universe}
+                  universe={universe === 'all' ? 'padilha' : universe} // Default fallback for color in all view
                   onAdd={addToCart}
                   onSelect={setSelectedProduct}
                 />
+              ) : (
+                <div className="max-w-6xl mx-auto px-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+                    {products.map((product, idx) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        index={idx}
+                        universe={universe}
+                        onAdd={() => addToCart(product)}
+                        onClick={() => setSelectedProduct(product)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
                 {products.length > 12 && (
                   <div className="max-w-6xl mx-auto px-4">
@@ -561,7 +633,7 @@ export default function App() {
                          "text-[10px] font-black uppercase tracking-[0.3em]",
                          universe === 'padilha' ? "text-[#e60000]" : "text-[#8a2be2]"
                        )}>
-                         {selectedProduct.categoria} • Linhagem {selectedProduct.personagem === 'padilha' ? 'Padilha' : 'Mulamba'}
+                         {selectedProduct.categoria} • Linhagem {selectedProduct.personagem === 'padilha' ? 'Padilha' : 'Mulambo'}
                        </span>
                        <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none text-zinc-900">{selectedProduct.nome}</h2>
                     </div>
@@ -583,7 +655,7 @@ export default function App() {
                         }}
                         className={cn(
                           "w-full py-5 rounded-2xl font-black uppercase text-xs tracking-[0.4em] transition-all hover:scale-[1.02] active:scale-95 shadow-xl text-white",
-                          universe === 'padilha' ? "bg-[#e60000] shadow-red-200/50" : "bg-[#8a2be2] shadow-purple-200/50"
+                          UNIVERSE_CONFIG[universe].bg + " " + UNIVERSE_CONFIG[universe].shadow
                         )}
                       >
                         Consagrar no Carrinho
@@ -842,7 +914,7 @@ export default function App() {
                             <span>{Math.round((stats?.faturamentoPorPersonagem?.find(p => p.p === 'padilha')?.v || 0) / (stats?.faturamentoTotal || 1) * 100)}%</span>
                          </div>
                          <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500" /> Mulamba</div>
+                            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500" /> Mulambo</div>
                             <span>{Math.round((stats?.faturamentoPorPersonagem?.find(p => p.p === 'mulamba')?.v || 0) / (stats?.faturamentoTotal || 1) * 100)}%</span>
                          </div>
                       </div>
@@ -1113,7 +1185,7 @@ export default function App() {
                            </div>
                            <span className={cn(
                              "text-sm font-black",
-                             universe === 'padilha' ? "text-[#e60000]" : "text-[#8a2be2]"
+                             UNIVERSE_CONFIG[universe].text
                            )}>R$ {(item.preco * item.quantity).toFixed(2)}</span>
                         </div>
                       </div>
@@ -1200,7 +1272,7 @@ export default function App() {
                         <div className="h-px bg-white/5" />
                         <div className={cn(
                           "flex justify-between text-4xl font-black italic",
-                          universe === 'padilha' ? "text-[#e60000]" : "text-[#8a2be2]"
+                          UNIVERSE_CONFIG[universe].text
                         )}>
                           <span>R$ {cartTotal.toFixed(2)}</span>
                         </div>
@@ -1231,7 +1303,7 @@ export default function App() {
             <div className="glass-morphism px-6 py-4 rounded-[24px] border-zinc-200 shadow-2xl flex items-center gap-4 min-w-[300px]">
               <div className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                universe === 'padilha' ? "bg-[#e60000] shadow-lg shadow-red-200/50 text-white" : "bg-[#8a2be2] shadow-lg shadow-purple-200/50 text-white"
+                UNIVERSE_CONFIG[universe].bg + " " + UNIVERSE_CONFIG[universe].shadow + " text-white"
               )}>
                 <CheckCircle2 className="w-5 h-5" />
               </div>
@@ -1305,8 +1377,10 @@ export default function App() {
                       <div className="space-y-2">
                         <label className="text-[10px] uppercase tracking-widest font-black opacity-30 text-zinc-900">Linhagem do Perfil</label>
                         <select name="personagem" defaultValue={editingProduct?.personagem || 'padilha'} className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400 appearance-none text-zinc-900">
-                          <option value="padilha" className="bg-white border-none">🍷 Padilha (Vibrante/Vermelho)</option>
-                          <option value="mulamba" className="bg-white border-none">💜 Mulamba (Místico/Roxo)</option>
+                          <option value="padilha" className="bg-white border-none">🍷 Maria Padilha (Aurea Vermelha)</option>
+                          <option value="mulamba" className="bg-white border-none">💜 Maria Mulambo (Místico Roxo)</option>
+                          <option value="malandragem" className="bg-white border-none">🎲 Malandragem (Verde Ginga)</option>
+                          <option value="damadanoite" className="bg-white border-none">🌙 Dama da Noite (Azul Moonlight)</option>
                         </select>
                       </div>
                     </div>

@@ -88,7 +88,7 @@ async function startServer() {
   app.get('/api/produtos', (req, res) => {
     const { personagem } = req.query;
     let products;
-    if (personagem) {
+    if (personagem && personagem !== 'all') {
       products = db.prepare('SELECT * FROM produtos WHERE personagem = ?').all(personagem);
     } else {
       products = db.prepare('SELECT * FROM produtos').all();

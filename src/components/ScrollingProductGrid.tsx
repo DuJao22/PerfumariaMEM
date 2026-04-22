@@ -5,7 +5,7 @@ import { ProductCard } from './ProductCard';
 
 interface ScrollingProductGridProps {
   products: Product[];
-  universe: 'padilha' | 'mulamba';
+  universe: 'padilha' | 'mulamba' | 'malandragem' | 'damadanoite';
   onAdd: (product: Product) => void;
   onSelect: (product: Product) => void;
 }
@@ -13,11 +13,11 @@ interface ScrollingProductGridProps {
 export function ScrollingProductGrid({ products, universe, onAdd, onSelect }: ScrollingProductGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Distribute products into 3 rows
-  const itemsPerRow = Math.ceil(products.length / 3);
-  const row1 = products.slice(0, itemsPerRow);
-  const row2 = products.slice(itemsPerRow, itemsPerRow * 2);
-  const row3 = products.slice(itemsPerRow * 2);
+  // Distribute products into rows by lineage
+  const row1 = products.filter(p => p.personagem === 'padilha');
+  const row2 = products.filter(p => p.personagem === 'mulamba');
+  const row3 = products.filter(p => p.personagem === 'malandragem');
+  const row4 = products.filter(p => p.personagem === 'damadanoite');
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -25,15 +25,16 @@ export function ScrollingProductGrid({ products, universe, onAdd, onSelect }: Sc
   });
 
   // Calculate horizontal travel based on the number of items
-  // We want to move the rows so that the last item becomes visible
   const x1 = useTransform(scrollYProgress, [0, 1], ["0%", "-60%"]);
   const x2 = useTransform(scrollYProgress, [0, 1], ["-60%", "0%"]);
   const x3 = useTransform(scrollYProgress, [0, 1], ["0%", "-80%"]);
+  const x4 = useTransform(scrollYProgress, [0, 1], ["-40%", "0%"]);
 
   const rows = [
-    { items: row1, x: x1, label: "Essências de Poder" },
-    { items: row2, x: x2, label: "Rituais de Sedução" },
-    { items: row3, x: x3, label: "Mistérios da Mata" }
+    { items: row1, x: x1, label: "Linha Maria Padilha" },
+    { items: row2, x: x2, label: "Linha Maria Mulambo" },
+    { items: row3, x: x3, label: "Linha Malandragem" },
+    { items: row4, x: x4, label: "Linha Dama da Noite" }
   ];
 
   return (

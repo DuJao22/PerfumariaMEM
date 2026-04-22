@@ -107,6 +107,16 @@ if (productCount < 20) {
     ['Espírito Livre', 178.00, 'https://picsum.photos/seed/mulamba8/400/600', 'Caminhadas sob o sol e campos de ametista.', 'Fresh', 'mulamba'],
     ['Oráculo Purpúreo', 240.00, 'https://picsum.photos/seed/mulamba9/400/600', 'A sabedoria ancestral destilada em aromas profundos.', 'Premium', 'mulamba'],
     ['Sussurro das Matas', 160.00, 'https://picsum.photos/seed/mulamba10/400/600', 'Eco de vozes antigas em um jardim de orquídeas.', 'Organic', 'mulamba'],
+    ['Ginga do Morro', 145.00, 'https://picsum.photos/seed/malan1/400/600', 'Fragrância malandra com notas de limão e cachaça premium.', 'Eau de Cologne', 'malandragem'],
+    ['Navalha Afiada', 168.00, 'https://picsum.photos/seed/malan2/400/600', 'Notas metálicas de lavanda e alecrim.', 'Fresh', 'malandragem'],
+    ['Cartola de Ouro', 210.00, 'https://picsum.photos/seed/malan3/400/600', 'Sofisticação das rodas de samba com tabaco e mel.', 'Intense', 'malandragem'],
+    ['Esquina da Sorte', 155.00, 'https://picsum.photos/seed/malan4/400/600', 'Aroma urbano e descontraído.', 'Daily', 'malandragem'],
+    ['Sombra da Lapa', 188.00, 'https://picsum.photos/seed/malan5/400/600', 'Mistério das noites boêmias.', 'Nocturnal', 'malandragem'],
+    ['Dama da Lapa', 195.00, 'https://picsum.photos/seed/dama1/400/600', 'Floral sedutor com toques de dama da noite e baunilha.', 'Eau de Parfum', 'damadanoite'],
+    ['Jasmim Noturno', 178.00, 'https://picsum.photos/seed/dama2/400/600', 'Aroma fresco e vibrante das flores que abrem ao luar.', 'Floral', 'damadanoite'],
+    ['Beijo do Luar', 225.00, 'https://picsum.photos/seed/dama3/400/600', 'Romantismo e mistério em cada gota.', 'Premium', 'damadanoite'],
+    ['Perfume da Travessa', 160.00, 'https://picsum.photos/seed/dama4/400/600', 'Feminilidade e atitude.', 'Daily', 'damadanoite'],
+    ['Encanto da Meia Noite', 240.00, 'https://picsum.photos/seed/dama5/400/600', 'Uma fragrância rara e inesquecível.', 'Exclusive', 'damadanoite'],
   ];
 
   for (const p of products) {
