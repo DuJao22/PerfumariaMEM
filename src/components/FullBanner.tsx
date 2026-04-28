@@ -62,58 +62,73 @@ export function FullBanner({ banners }: FullBannerProps) {
 
           {/* Background Overlay */}
           <div className={cn(
-            "absolute inset-0 z-10 transition-colors duration-1000 bg-gradient-to-t from-white/40 via-transparent to-transparent pointer-events-none"
+            "absolute inset-0 z-10 transition-colors duration-1000",
+            "bg-gradient-to-t from-zinc-950/80 via-zinc-900/40 to-transparent"
           )} />
           
-          <div className="relative z-20 h-full flex flex-col items-center justify-center text-center px-6 md:px-12 space-y-8">
+          <div className="relative z-20 h-full flex flex-col items-center justify-center text-center px-6 md:px-12 space-y-4 md:space-y-6">
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="flex justify-center gap-1.5"
+              className="flex justify-center gap-2 mb-4"
             >
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
                   className={cn(
-                    "w-1 h-3 rounded-full opacity-50",
-                    activeBanner.universe === 'padilha' ? "bg-[#e60000]" : "bg-[#8a2be2]"
+                    "w-1 h-3 rounded-full",
+                    activeBanner.universe === 'padilha' ? "bg-red-500 shadow-[0_0_15px_#ef4444]" : "bg-purple-500 shadow-[0_0_15px_#a855f7]"
                   )}
                 />
               ))}
             </motion.div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none italic text-zinc-900 drop-shadow-sm select-none"
-            >
-              {activeBanner.title}
-            </motion.h1>
+            <div className="space-y-2">
+              <motion.span
+                initial={{ opacity: 0, letterSpacing: '0.1em' }}
+                animate={{ opacity: 0.4, letterSpacing: '0.4em' }}
+                transition={{ delay: 0.4, duration: 1 }}
+                className="text-white text-[10px] font-black uppercase tracking-[0.4em] block"
+              >
+                Edição Limitada
+              </motion.span>
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+                className="text-7xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] italic text-white drop-shadow-2xl select-none font-serif"
+              >
+                {activeBanner.title}
+              </motion.h1>
+            </div>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-              className="text-sm md:text-base text-zinc-700 font-medium max-w-lg mx-auto uppercase tracking-[0.15em] leading-relaxed drop-shadow-sm select-none"
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="text-xs md:text-sm text-zinc-300 font-medium max-w-xl mx-auto uppercase tracking-[0.2em] leading-relaxed drop-shadow-sm select-none opacity-60"
             >
               {activeBanner.subtitle}
             </motion.p>
 
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className={cn(
-                "px-8 py-4 rounded-full font-bold uppercase text-[10px] tracking-[0.3em] transition-all text-white",
-                activeBanner.universe === 'padilha' ? "bg-[#e60000] shadow-xl shadow-red-200/50" : "bg-[#8a2be2] shadow-xl shadow-purple-200/50"
-              )}
+              transition={{ delay: 0.7, duration: 0.8 }}
+              className="pt-6"
             >
-              {activeBanner.buttonText}
-            </motion.button>
+              <button 
+                className={cn(
+                  "px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-2xl",
+                  activeBanner.universe === 'padilha' 
+                    ? "bg-red-600 text-white shadow-red-900/20" 
+                    : "bg-purple-600 text-white shadow-purple-900/20"
+                )}
+              >
+                {activeBanner.buttonText}
+              </button>
+            </motion.div>
           </div>
         </motion.div>
       </AnimatePresence>
@@ -130,8 +145,8 @@ export function FullBanner({ banners }: FullBannerProps) {
               className={cn(
                 "h-1 rounded-full transition-all duration-500",
                 currentIndex === idx 
-                  ? (activeBanner.universe === 'padilha' ? "w-10 bg-[#e60000]" : "w-10 bg-[#8a2be2]")
-                  : "w-4 bg-zinc-400/30 group-hover:bg-zinc-400/50"
+                  ? (activeBanner.universe === 'padilha' ? "w-10 bg-red-600" : "w-10 bg-purple-600")
+                  : "w-4 bg-white/20 group-hover:bg-white/40"
               )}
             />
           </button>

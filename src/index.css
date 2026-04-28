@@ -13,8 +13,8 @@
 
 @layer base {
   body {
-    @apply antialiased transition-colors duration-700;
-    background: #ffffff;
+    @apply antialiased transition-colors duration-700 font-sans;
+    background: radial-gradient(circle at 50% -20%, #f9f9fb 0%, #ffffff 100%);
   }
 }
 
@@ -23,15 +23,13 @@
   --color-accent: #fee2e2;
   --bg-main: #ffffff;
   --text-main: #09090b;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
-.universe-mulamba {
+.universe-mulambo {
   --color-primary: #8a2be2;
   --color-accent: #f5f3ff;
   --bg-main: #ffffff;
   --text-main: #09090b;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
 .universe-malandragem {

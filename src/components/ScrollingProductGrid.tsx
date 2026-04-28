@@ -5,7 +5,7 @@ import { ProductCard } from './ProductCard';
 
 interface ScrollingProductGridProps {
   products: Product[];
-  universe: 'padilha' | 'mulamba' | 'malandragem' | 'damadanoite';
+  universe: 'padilha' | 'mulambo';
   onAdd: (product: Product) => void;
   onSelect: (product: Product) => void;
 }
@@ -15,9 +15,7 @@ export function ScrollingProductGrid({ products, universe, onAdd, onSelect }: Sc
   
   // Distribute products into rows by lineage
   const row1 = products.filter(p => p.personagem === 'padilha');
-  const row2 = products.filter(p => p.personagem === 'mulamba');
-  const row3 = products.filter(p => p.personagem === 'malandragem');
-  const row4 = products.filter(p => p.personagem === 'damadanoite');
+  const row2 = products.filter(p => p.personagem === 'mulambo');
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -32,9 +30,7 @@ export function ScrollingProductGrid({ products, universe, onAdd, onSelect }: Sc
 
   const rows = [
     { items: row1, x: x1, label: "Linha Maria Padilha" },
-    { items: row2, x: x2, label: "Linha Maria Mulambo" },
-    { items: row3, x: x3, label: "Linha Malandragem" },
-    { items: row4, x: x4, label: "Linha Dama da Noite" }
+    { items: row2, x: x2, label: "Linha Maria Mulambo" }
   ];
 
   return (
@@ -43,14 +39,17 @@ export function ScrollingProductGrid({ products, universe, onAdd, onSelect }: Sc
         <div className="space-y-16 md:space-y-24">
           {rows.map((row, rowIdx) => (
             <div key={rowIdx} className="w-full space-y-4">
-              <div className="px-12 md:px-24">
-                <div className="flex items-center gap-4 opacity-30">
-                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-900 shrink-0">
-                    {row.label}
+                <div className="flex flex-col gap-1 px-12 md:px-24">
+                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-400">
+                    Linhagem Exclusiva
                   </span>
-                  <div className="h-px flex-1 bg-zinc-900" />
+                  <div className="flex items-center gap-6">
+                    <h2 className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter text-zinc-900 whitespace-nowrap font-serif leading-[0.8]">
+                      {row.label}
+                    </h2>
+                    <div className="h-px flex-1 bg-zinc-200" />
+                  </div>
                 </div>
-              </div>
 
               <motion.div 
                 style={{ x: row.x }}

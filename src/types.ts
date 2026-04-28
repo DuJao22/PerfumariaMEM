@@ -1,4 +1,4 @@
-export type Universe = 'all' | 'padilha' | 'mulamba' | 'malandragem' | 'damadanoite';
+export type Universe = 'padilha' | 'mulambo';
 
 export interface Product {
   id: number;

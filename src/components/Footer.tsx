@@ -10,25 +10,31 @@ import {
   ArrowRight,
   ShieldCheck,
   CreditCard,
-  Truck
+  Truck,
+  Smartphone,
+  Globe
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface FooterProps {
-  universe: 'all' | 'padilha' | 'mulamba' | 'malandragem' | 'damadanoite';
+  universe: 'padilha' | 'mulambo';
+  configs?: Record<string, string>;
 }
 
 const FOOTER_CONFIG = {
-  all: { text: 'text-zinc-900', border: 'border-zinc-100', bg: 'bg-white' },
   padilha: { text: 'text-[#e60000]', border: 'border-red-100', bg: 'bg-white' },
-  mulamba: { text: 'text-[#8a2be2]', border: 'border-purple-100', bg: 'bg-zinc-50' },
-  malandragem: { text: 'text-[#008000]', border: 'border-green-100', bg: 'bg-white' },
-  damadanoite: { text: 'text-[#1a237e]', border: 'border-indigo-100', bg: 'bg-zinc-50' }
+  mulambo: { text: 'text-[#8a2be2]', border: 'border-purple-100', bg: 'bg-zinc-50' }
 };
 
-export const Footer: FC<FooterProps> = ({ universe }) => {
+export const Footer: FC<FooterProps> = ({ universe, configs = {} }) => {
   const currentYear = new Date().getFullYear();
   const config = FOOTER_CONFIG[universe];
+
+  const socialLinks = [
+    { Icon: Instagram, key: 'social_instagram', baseUrl: 'https://instagram.com/' },
+    { Icon: Smartphone, key: 'social_tiktok', baseUrl: 'https://tiktok.com/@' },
+    { Icon: Globe, key: 'social_bio', baseUrl: '' }
+  ];
 
   return (
     <footer className={cn(
@@ -53,15 +59,36 @@ export const Footer: FC<FooterProps> = ({ universe }) => {
               Elevando sua essência ao patamar do sagrado. Fragrâncias consagradas para o corpo e para a alma.
             </p>
             <div className="flex gap-4">
-              {[Instagram, Facebook, Twitter, Youtube].map((Icon, i) => (
-                <a 
-                  key={i} 
-                  href="#" 
-                  className="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
-                >
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
+              {socialLinks.map(({ Icon, key, baseUrl }, i) => {
+                const value = configs[key];
+                if (!value) return null;
+                
+                const href = value.startsWith('http') ? value : `${baseUrl}${value.replace('@', '')}`;
+                
+                return (
+                  <a 
+                    key={i} 
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                  >
+                    <Icon className="w-4 h-4" />
+                  </a>
+                );
+              })}
+              {/* Default icons if none configured */}
+              {Object.keys(configs).filter(k => k.startsWith('social_') && configs[k]).length === 0 && (
+                [Instagram, Facebook, Twitter, Youtube].map((Icon, i) => (
+                  <a 
+                    key={i} 
+                    href="#" 
+                    className="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                  >
+                    <Icon className="w-4 h-4" />
+                  </a>
+                ))
+              )}
             </div>
           </div>
 
@@ -71,7 +98,7 @@ export const Footer: FC<FooterProps> = ({ universe }) => {
               Explore o Ritual
             </h4>
             <ul className="space-y-4">
-              {['Catálogo Completo', 'Linhagem Padilha', 'Linhagem Mulambo', 'Pedidos Realizados', 'Área VIP'].map((link) => (
+              {['Linhagem Padilha', 'Linhagem Mulambo', 'Pedidos Realizados', 'Área VIP'].map((link) => (
                 <li key={link}>
                   <a href="#" className="text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-colors flex items-center gap-2 group">
                     <span className="w-0 group-hover:w-4 h-px bg-zinc-900 transition-all" />
