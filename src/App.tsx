@@ -996,43 +996,42 @@ export default function App() {
               {console.log('Rendering Admin Panel, SubTab:', adminSubTab)}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-black">
+                  <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-black shadow-xl shrink-0">
                     <ShieldCheck className="w-7 h-7" />
                   </div>
                   <div>
-                    <h2 className="text-4xl font-black uppercase italic tracking-tighter">Painel Admin</h2>
-                    <p className="text-[10px] uppercase opacity-40 font-bold tracking-[0.2em]">Logística e Gestão</p>
+                    <h2 className="text-3xl sm:text-4xl font-black uppercase italic tracking-tighter leading-none">Comando</h2>
+                    <p className="text-[10px] uppercase opacity-40 font-bold tracking-[0.2em] mt-1 italic">Gestão de Alquimia</p>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex bg-zinc-100 p-1 rounded-full sm:rounded-[32px] shadow-inner border border-zinc-200/50 overflow-x-auto max-w-full hide-scrollbar">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="flex bg-zinc-100 p-1 rounded-full sm:rounded-2xl shadow-inner border border-zinc-200/50 overflow-x-auto max-w-full hide-scrollbar scroll-smooth">
                     {[
-                      { id: 'dashboard', label: 'Dashboard', icon: <TrendingUp className="w-3.5 h-3.5" /> },
-                      { id: 'produtos', label: 'Catálogo', icon: <Package className="w-3.5 h-3.5" /> },
+                      { id: 'dashboard', label: 'Estatísticas', icon: <TrendingUp className="w-3.5 h-3.5" /> },
+                      { id: 'produtos', label: 'Estoque', icon: <Package className="w-3.5 h-3.5" /> },
                       { id: 'pedidos', label: 'Vendas', icon: <ShoppingBag className="w-3.5 h-3.5" /> },
                       { id: 'crm', label: 'Clientes', icon: <Users className="w-3.5 h-3.5" /> },
-                      { id: 'config', label: 'Visual', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
+                      { id: 'config', label: 'Cores', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
                     ].map(tab => (
                       <button
                         key={tab.id}
                         onClick={() => setAdminSubTab(tab.id as any)}
                         className={cn(
-                          "flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full sm:rounded-[24px] text-[9px] sm:text-[10px] uppercase font-black tracking-widest transition-all whitespace-nowrap",
+                          "flex items-center justify-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full sm:rounded-xl text-[9px] sm:text-[10px] uppercase font-black tracking-widest transition-all whitespace-nowrap min-w-[60px] sm:min-w-0",
                           adminSubTab === tab.id 
-                            ? "bg-white text-zinc-900 shadow-md sm:shadow-xl scale-105" 
+                            ? "bg-white text-zinc-900 shadow-md scale-105" 
                             : "text-zinc-400 hover:text-zinc-600"
                         )}
                       >
                         {tab.icon}
-                        <span className="hidden sm:inline">{tab.label}</span>
-                        <span className="sm:hidden">{tab.label.charAt(0)}</span>
+                        <span className="hidden xs:inline">{tab.label}</span>
                       </button>
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-2 bg-zinc-100 px-4 py-2 rounded-full border border-zinc-200/50 w-full sm:w-auto overflow-hidden">
-                    <span className="text-[9px] font-black uppercase opacity-40 whitespace-nowrap">Linhagem:</span>
+                  <div className="flex items-center gap-2 bg-zinc-100 px-4 py-2 rounded-full border border-zinc-200/50 sm:w-auto overflow-hidden shadow-sm">
+                    <span className="text-[9px] font-black uppercase opacity-40 whitespace-nowrap">Filtro:</span>
                     <select 
                       value={adminPersonagemFilter}
                       onChange={(e) => setAdminPersonagemFilter(e.target.value)}
@@ -1257,51 +1256,18 @@ export default function App() {
 
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
-                        <Globe className="w-5 h-5" />
+                      <div className="w-10 h-10 bg-zinc-100 rounded-2xl flex items-center justify-center text-zinc-900 border border-zinc-200">
+                        <Package className="w-5 h-5" />
                       </div>
                       <div>
-                        <h4 className="font-black uppercase italic leading-none">Presença Digital</h4>
-                        <p className="text-[10px] font-bold uppercase opacity-30 tracking-widest mt-1">Links Sociais & Bio</p>
+                        <h4 className="font-black uppercase italic leading-none">Novidades</h4>
+                        <p className="text-[10px] font-bold uppercase opacity-30 tracking-widest mt-1">Dicas de Gestão</p>
                       </div>
                     </div>
-
-                    <div className="glass-morphism p-8 rounded-[40px] border-zinc-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {[
-                        { label: 'Instagram', configKey: 'social_instagram', placeholder: '@pkimbanda', icon: <Instagram className="w-4 h-4" /> },
-                        { label: 'TikTok', configKey: 'social_tiktok', placeholder: '@pkimbanda_oficial', icon: <div className="font-black text-[10px]">Tik</div> },
-                        { label: 'Bio Site / Linktree', configKey: 'social_bio', placeholder: 'linktr.ee/pkimbanda', icon: <Globe className="w-4 h-4" /> }
-                      ].map(social => (
-                        <div key={social.configKey} className="space-y-3">
-                          <div className="flex items-center gap-2">
-                             <span className="opacity-40">{social.icon}</span>
-                             <label className="text-[10px] uppercase font-black opacity-30 tracking-widest">{social.label}</label>
-                          </div>
-                          <div className="flex gap-2">
-                            <input 
-                              type="text" 
-                              value={configs[social.configKey] || ''} 
-                              onChange={(e) => setConfigs({ ...configs, [social.configKey]: e.target.value })}
-                              className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-zinc-400 text-xs font-medium"
-                              placeholder={social.placeholder}
-                            />
-                            <button 
-                              onClick={async () => {
-                                 const res = await fetch('/api/configuracoes', {
-                                   method: 'POST',
-                                   credentials: 'include',
-                                   headers: { 'Content-Type': 'application/json' },
-                                   body: JSON.stringify({ chave: social.configKey, valor: configs[social.configKey] })
-                                 });
-                                 if (res.ok) setToast({ productName: `${social.label} salvo!` });
-                              }}
-                              className="bg-zinc-900 text-white px-4 py-3 rounded-xl hover:scale-105 transition-all shadow-sm active:scale-95"
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="glass-morphism p-8 rounded-[40px] border border-zinc-100 shadow-sm bg-gradient-to-br from-white to-zinc-50">
+                       <p className="text-xs font-medium text-zinc-600 leading-relaxed italic">
+                         "Toda fragrância conta uma história. Mantenha seu estoque sempre atualizado e utilize fotos de alta qualidade (links externos) para encantar seus clientes."
+                       </p>
                     </div>
                   </div>
                 </div>
@@ -1360,10 +1326,42 @@ export default function App() {
               {adminSubTab === 'pedidos' && (
                 <div className="space-y-6">
                   <h3 className="text-2xl font-black uppercase italic tracking-tighter">Gestão de Pedidos</h3>
-                  <div className="overflow-x-auto rounded-[32px] glass-morphism">
+                  {/* Mobile Cards for Pedidos */}
+                  <div className="grid grid-cols-1 gap-4 md:hidden">
+                    {filteredAdminOrders.map(order => (
+                      <div key={order.id} className="glass-morphism p-6 rounded-[32px] space-y-4 shadow-sm border border-zinc-100">
+                        <div className="flex justify-between items-start">
+                           <div>
+                             <p className="text-[10px] font-black opacity-30 uppercase">ID: #{order.id}</p>
+                             <p className="font-bold text-lg leading-tight mt-1">{order.cliente}</p>
+                           </div>
+                           <StatusBadge status={order.status} />
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                           <span className="opacity-60">{new Date(order.data).toLocaleDateString()}</span>
+                           <span className="font-black text-sm">R$ {order.total.toFixed(2)}</span>
+                        </div>
+                        <div className="pt-2">
+                           <select 
+                             value={order.status}
+                             onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                             className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-xs font-bold uppercase outline-none focus:border-zinc-400 appearance-none shadow-sm"
+                           >
+                             <option value="pendente">Pendente</option>
+                             <option value="pago">Pago</option>
+                             <option value="enviado">Enviado</option>
+                             <option value="entregue">Entregue</option>
+                           </select>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop Table for Pedidos */}
+                  <div className="hidden md:block overflow-x-auto rounded-[32px] glass-morphism border border-zinc-100 shadow-sm relative z-0">
                      <table className="w-full text-left">
                        <thead>
-                         <tr className="border-b border-white/5">
+                         <tr className="border-b border-zinc-100">
                            <th className="p-6 text-[10px] uppercase font-black opacity-30">ID</th>
                            <th className="p-6 text-[10px] uppercase font-black opacity-30">Cliente</th>
                            <th className="p-6 text-[10px] uppercase font-black opacity-30">Data</th>
@@ -1372,9 +1370,9 @@ export default function App() {
                            <th className="p-6 text-[10px] uppercase font-black opacity-30 text-right">Ação</th>
                          </tr>
                        </thead>
-                       <tbody className="divide-y divide-white/5">
+                       <tbody className="divide-y divide-zinc-100">
                           {filteredAdminOrders.map(order => (
-                            <tr key={order.id} className="hover:bg-white/5 transition-colors group">
+                            <tr key={order.id} className="hover:bg-zinc-50/50 transition-colors group">
                               <td className="p-6 text-sm font-bold opacity-40">#{order.id}</td>
                               <td className="p-6 text-sm font-bold">{order.cliente}</td>
                               <td className="p-6 text-xs font-medium opacity-60">{new Date(order.data).toLocaleString()}</td>
@@ -1384,7 +1382,7 @@ export default function App() {
                                  <select 
                                    value={order.status}
                                    onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                                   className="bg-black/50 border border-white/10 rounded-xl px-2 py-1.5 text-[10px] font-bold uppercase focus:outline-none focus:border-white/30"
+                                   className="bg-white border border-zinc-200 rounded-xl px-2 py-1.5 text-[10px] font-bold uppercase focus:outline-none focus:border-zinc-400 cursor-pointer shadow-sm"
                                  >
                                    <option value="pendente">Pendente</option>
                                    <option value="pago">Pago</option>
@@ -1403,32 +1401,60 @@ export default function App() {
               {adminSubTab === 'crm' && (
                 <div className="space-y-6">
                   <h3 className="text-2xl font-black uppercase italic tracking-tighter">Gestão de Clientes (CRM)</h3>
-                  <div className="overflow-x-auto rounded-[32px] glass-morphism">
+                  {/* Mobile Cards for CRM */}
+                  <div className="grid grid-cols-1 gap-4 md:hidden">
+                    {filteredAdminUsers.map(u => (
+                      <div key={u.id} className="glass-morphism p-6 rounded-[32px] space-y-4 shadow-sm border border-zinc-100">
+                         <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-tighter border border-zinc-200 shadow-sm">
+                              {u.nome.substring(0, 2)}
+                            </div>
+                            <div>
+                              <p className="font-bold leading-none">{u.nome}</p>
+                              <p className="text-[10px] opacity-40 uppercase font-black mt-1">{u.login}</p>
+                            </div>
+                         </div>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 text-center">
+                               <p className="text-[8px] uppercase font-black opacity-30">Pedidos</p>
+                               <p className="text-sm font-black italic">{u.total_pedidos || 0}</p>
+                            </div>
+                            <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 text-center">
+                               <p className="text-[8px] uppercase font-black opacity-30">Investimento</p>
+                               <p className="text-sm font-black italic text-green-600">R$ {(u.total_gasto || 0).toFixed(2)}</p>
+                            </div>
+                         </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop Table for CRM */}
+                  <div className="hidden md:block overflow-x-auto rounded-[32px] glass-morphism border border-zinc-100">
                      <table className="w-full text-left">
                        <thead>
-                         <tr className="border-b border-white/5">
+                         <tr className="border-b border-zinc-100">
                            <th className="p-6 text-[10px] uppercase font-black opacity-30">Cliente</th>
-                           <th className="p-6 text-[10px] uppercase font-black opacity-30">Identificador (Login)</th>
-                           <th className="p-6 text-[10px] uppercase font-black opacity-30">Pedidos</th>
+                           <th className="p-6 text-[10px] uppercase font-black opacity-30">Login</th>
+                           <th className="p-6 text-[10px] uppercase font-black opacity-30">Vendas</th>
                            <th className="p-6 text-[10px] uppercase font-black opacity-30">Total Gasto</th>
                            <th className="p-6 text-[10px] uppercase font-black opacity-30 text-right">Perfil</th>
                          </tr>
                        </thead>
-                       <tbody className="divide-y divide-white/5">
+                       <tbody className="divide-y divide-zinc-100">
                           {filteredAdminUsers.map(u => (
-                            <tr key={u.id} className="hover:bg-white/5 transition-colors group">
-                              <td className="p-6">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-xs font-black uppercase tracking-tighter">
-                                    {u.nome.substring(0, 2)}
-                                  </div>
-                                  <span className="text-sm font-bold">{u.nome}</span>
-                                </div>
-                              </td>
-                              <td className="p-6 text-sm font-bold opacity-40">{u.login}</td>
-                              <td className="p-6 text-sm font-black">{u.total_pedidos}</td>
-                              <td className="p-6 text-sm font-black text-green-500">R$ {(u.total_gasto || 0).toFixed(2)}</td>
-                              <td className="p-6 text-right text-[10px] uppercase font-bold opacity-30 italic">Cliente Ativo</td>
+                            <tr key={u.id} className="hover:bg-zinc-50/50 transition-colors group">
+                               <td className="p-6">
+                                 <div className="flex items-center gap-3">
+                                   <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-tighter border border-zinc-200">
+                                     {u.nome.substring(0, 2)}
+                                   </div>
+                                   <span className="text-sm font-bold">{u.nome}</span>
+                                 </div>
+                               </td>
+                               <td className="p-6 text-sm font-bold opacity-40">{u.login}</td>
+                               <td className="p-6 text-sm font-black">{u.total_pedidos}</td>
+                               <td className="p-6 text-sm font-black text-green-600">R$ {(u.total_gasto || 0).toFixed(2)}</td>
+                               <td className="p-6 text-right text-[10px] uppercase font-bold opacity-30 italic">Ativo</td>
                             </tr>
                           ))}
                        </tbody>
@@ -1452,7 +1478,7 @@ export default function App() {
                       { id: 'padilha', label: 'Maria Padilha', configKey: 'bg_padilha' },
                       { id: 'mulambo', label: 'Maria Mulambo', configKey: 'bg_mulambo' }
                     ].map(lin => (
-                      <div key={lin.id} className="glass-morphism p-8 rounded-[40px] border-zinc-200 space-y-8 shadow-sm">
+                      <div key={lin.id} className="glass-morphism p-6 sm:p-8 rounded-[40px] border-zinc-200 space-y-8 shadow-sm">
                         <div className="flex items-center gap-4">
                           <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center text-white", lin.id === 'padilha' ? 'bg-red-500 shadow-red-200/50 shadow-lg' : 'bg-purple-500 shadow-purple-200/50 shadow-lg')}>
                             {lin.id === 'padilha' ? <Zap className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
@@ -1465,28 +1491,28 @@ export default function App() {
                         
                         <div className="space-y-3">
                           <label className="text-[10px] uppercase font-black opacity-30 tracking-widest">URL da Imagem de Fundo</label>
-                          <div className="flex gap-2">
-                            <input 
-                              type="text" 
-                              value={configs[lin.configKey] || ''} 
-                              onChange={(e) => setConfigs({ ...configs, [lin.configKey]: e.target.value })}
-                              className="flex-1 bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400 text-sm font-medium"
-                              placeholder="Insira o link da imagem (ex: imgur.com/xyz.png)"
-                            />
-                            <button 
-                              onClick={async () => {
-                                 const res = await fetch('/api/configuracoes', {
-                                   method: 'POST',
-                                   credentials: 'include',
-                                   headers: { 'Content-Type': 'application/json' },
-                                   body: JSON.stringify({ chave: lin.configKey, valor: configs[lin.configKey] })
-                                 });
-                                 if (res.ok) setToast({ productName: `Layout ${lin.label} salvo!` });
-                              }}
-                              className="bg-zinc-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase hover:scale-105 transition-all shadow-lg active:scale-95"
-                            >
-                              Salvar
-                            </button>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                             <input 
+                               type="text" 
+                               value={configs[lin.configKey] || ''} 
+                               onChange={(e) => setConfigs({ ...configs, [lin.configKey]: e.target.value })}
+                               className="flex-1 bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400 text-sm font-medium"
+                               placeholder="Link da imagem..."
+                             />
+                             <button 
+                               onClick={async () => {
+                                  const res = await fetch('/api/configuracoes', {
+                                    method: 'POST',
+                                    credentials: 'include',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ chave: lin.configKey, valor: configs[lin.configKey] })
+                                  });
+                                  if (res.ok) setToast({ productName: `Layout ${lin.label} salvo!` });
+                               }}
+                               className="bg-zinc-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase hover:scale-105 transition-all shadow-lg active:scale-95"
+                             >
+                               Salvar
+                             </button>
                           </div>
                         </div>
                         
@@ -1496,11 +1522,58 @@ export default function App() {
                             className="w-full h-full object-contain mix-blend-multiply opacity-50"
                           />
                           <div className="absolute inset-0 bg-zinc-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                             <p className="text-white text-[10px] font-black uppercase tracking-[0.4em] scale-90 group-hover:scale-100 transition-transform">Preview do Visual</p>
+                             <p className="text-white text-[10px] font-black uppercase tracking-[0.4em] scale-90 group-hover:scale-100 transition-transform text-center">Preview em Tempo Real</p>
                           </div>
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="glass-morphism p-6 sm:p-10 rounded-[40px] border-zinc-200 space-y-10 shadow-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-black shadow-lg">
+                        <Share2 className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-black uppercase italic text-lg leading-none">Redes Sociais & Links</h4>
+                        <p className="text-[10px] font-bold uppercase opacity-30 tracking-widest mt-1">Conecte sua presença digital</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {[
+                        { key: 'social_instagram', label: 'Instagram (URL)', placeholder: 'https://instagram.com/...' },
+                        { key: 'social_tiktok', label: 'TikTok (URL)', placeholder: 'https://tiktok.com/@...' },
+                        { key: 'social_bio', label: 'Link da Bio / WhatsApp', placeholder: 'https://wa.me/...' }
+                      ].map(social => (
+                        <div key={social.key} className="space-y-3">
+                          <label className="text-[10px] uppercase font-black opacity-30 tracking-widest">{social.label}</label>
+                          <div className="flex flex-col gap-2">
+                             <input 
+                               type="text" 
+                               value={configs[social.key] || ''} 
+                               onChange={(e) => setConfigs({ ...configs, [social.key]: e.target.value })}
+                               className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400 text-sm"
+                               placeholder={social.placeholder}
+                             />
+                             <button 
+                               onClick={async () => {
+                                  const res = await fetch('/api/configuracoes', {
+                                    method: 'POST',
+                                    credentials: 'include',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ chave: social.key, valor: configs[social.key] })
+                                  });
+                                  if (res.ok) setToast({ productName: `${social.label.split(' ')[0]} salvo!` });
+                               }}
+                               className="bg-zinc-900 text-white py-4 rounded-2xl text-[10px] font-black uppercase hover:scale-105 transition-all shadow-md active:scale-95"
+                             >
+                               Atualizar
+                             </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -1789,9 +1862,31 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-widest font-black opacity-30 text-zinc-900">URL da Imagem</label>
-                      <input required name="imagem" defaultValue={editingProduct?.imagem} placeholder="https://..." className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400" />
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-widest font-black opacity-30 text-zinc-900">URL da Imagem</label>
+                        <input 
+                          required 
+                          name="imagem" 
+                          defaultValue={editingProduct?.imagem} 
+                          placeholder="https://..." 
+                          className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-zinc-400"
+                          onChange={(e) => {
+                            const imgPreview = document.getElementById('product-img-preview') as HTMLImageElement;
+                            if (imgPreview) imgPreview.src = e.target.value;
+                          }}
+                        />
+                      </div>
+                      <div className="aspect-square w-32 mx-auto rounded-2xl overflow-hidden border border-zinc-100 bg-zinc-50 shadow-inner">
+                        <img 
+                          id="product-img-preview"
+                          src={editingProduct?.imagem || 'https://placehold.co/400x400/f4f4f5/71717a?text=Preview'} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/f4f4f5/ef4444?text=Erro+no+Link';
+                          }}
+                        />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
